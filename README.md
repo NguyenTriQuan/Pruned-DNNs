@@ -1,2 +1,2 @@
 # Pruned-DNNs
-Generalization in Pruned Deep Neural Networks
+Generalization of Pruned Deep Neural Networks. Implement some pruning methods.
