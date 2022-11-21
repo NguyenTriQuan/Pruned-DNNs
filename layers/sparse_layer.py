@@ -137,7 +137,7 @@ class _SparseLayer(nn.Module):
         with torch.no_grad():
             strength = self.strength/total_strength
             self.weight.data = proximal_operator(self.weight.data, strength)
-            self.mask = (self.weight.data > 0)
+            self.mask = (self.weight.data != 0)
             # if self.bias is not None:
             #     self.bias.data = proximal_operator(self.bias.data, strength)
 
@@ -189,7 +189,7 @@ class SparseLinear(_SparseLayer):
         self.weight = nn.Parameter(torch.Tensor(self.out_features, self.in_features).to(device))
         nn.init.kaiming_normal_(self.weight, a=math.sqrt(5))
         self.strength = self.weight.numel()
-        self.mask = (self.weight.data > 0).detach()
+        self.mask = (self.weight.data != 0).detach()
 
     def forward(self, x):    
         x = F.linear(x, self.weight*self.mask, self.bias)
@@ -234,7 +234,7 @@ class SparseConv2D(_SparseConvNd):
         self.weight = nn.Parameter(torch.Tensor(self.out_features, self.in_features // self.groups, *self.kernel_size).to(device))
         nn.init.kaiming_normal_(self.weight, a=math.sqrt(5))
         self.strength = self.weight.numel()
-        self.mask = (self.weight.data > 0).detach()
+        self.mask = (self.weight.data != 0).detach()
 
     def forward(self, x):    
         x = F.conv2d(x, self.weight*self.mask, self.bias, self.stride, self.padding, self.dilation, self.groups)
