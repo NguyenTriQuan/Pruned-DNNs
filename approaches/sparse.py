@@ -230,10 +230,10 @@ class Appr(object):
                             
             self.train_batch(images, targets, squeeze, lr)
         
-        if squeeze:
+        # if squeeze:
             # self.model.squeeze(self.optimizer.state)
-            count, total = self.model.count_params()
-            print(f'Sparsity = {round(100-100*count/total, 2)} %, num params = {count}')
+        count, total = self.model.count_params()
+        print(f'Sparsity = {round(100-100*count/total, 2)} %, num params = {count}')
 
 
     def eval(self,data_loader, valid_transform):
