@@ -209,7 +209,8 @@ class Appr(object):
         self.optimizer.zero_grad()
         loss.backward() 
         self.optimizer.step()
-        self.model.PGD_group_lasso(lr, self.lamb)
+        if squeeze:
+            self.model.PGD_group_lasso(lr, self.lamb)
 
     def eval_batch(self,images, targets):
         outputs = self.model.forward(images)
