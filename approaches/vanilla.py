@@ -24,12 +24,14 @@ from torch.utils.data import  TensorDataset, DataLoader
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 import sys
+from arguments import get_args
+args = get_args()
 
 class Appr(object):
 
     def __init__(self, input_size, output_size, args):
         Net = getattr(network, args.arch)
-        self.model = Net(input_size=input_size, output_size=output_size, norm_type=args.norm_type).to(device)
+        self.model = Net(input_size=input_size, output_size=output_size).to(device)
         
         self.nepochs = args.nepochs
         self.batch_size = args.batch_size

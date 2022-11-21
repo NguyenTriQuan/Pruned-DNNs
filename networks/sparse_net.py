@@ -63,9 +63,13 @@ class _SparseModel(nn.Module):
         self.SL[-1].squeeze(optim_state, mask_in, None)
 
     def get_strength(self):
+        # self.total_strength = 1
+        # for i, m in enumerate(self.SL[:-1]):
+        #     self.total_strength += self.SL[i].strength + self.SL[i+1].strength
+
         self.total_strength = 1
-        for i, m in enumerate(self.SL[:-1]):
-            self.total_strength += self.SL[i].strength + self.SL[i+1].strength
+        for i, m in enumerate(self.SL):
+            self.total_strength += m.strength
     
     def report(self):
         for m in self.SL:
@@ -99,7 +103,7 @@ class VGG(_SparseModel):
         super(VGG, self).__init__()
 
         nchannels, size, _ = input_size
-
+        mul = args.mul
         self.layers = make_layers(cfg, nchannels, norm_type=norm_type, mul=mul)
 
         self.p = 0.1

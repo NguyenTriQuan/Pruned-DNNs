@@ -210,7 +210,8 @@ class Appr(object):
         loss.backward() 
         self.optimizer.step()
         if squeeze:
-            self.model.PGD_group_lasso(lr, self.lamb)
+            # self.model.PGD_group_lasso(lr, self.lamb)
+            self.model.PGD_lasso(lr, self.lamb)
 
     def eval_batch(self,images, targets):
         outputs = self.model.forward(images)
@@ -230,7 +231,7 @@ class Appr(object):
             self.train_batch(images, targets, squeeze, lr)
         
         if squeeze:
-            self.model.squeeze(self.optimizer.state)
+            # self.model.squeeze(self.optimizer.state)
             count, total = self.model.count_params()
             print(f'Sparsity = {round(100-100*count/total, 2)} %, num params = {count}')
 

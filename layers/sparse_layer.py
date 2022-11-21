@@ -187,7 +187,7 @@ class SparseLinear(_SparseLayer):
         self.dim_out = [0]
 
         self.weight = nn.Parameter(torch.Tensor(self.out_features, self.in_features).to(device))
-        nn.init.kaiming_uniform_(self.weight, a=math.sqrt(5))
+        nn.init.kaiming_normal_(self.weight, a=math.sqrt(5))
         self.strength = self.weight.numel()
 
     def forward(self, x):    
@@ -231,7 +231,7 @@ class SparseConv2D(_SparseConvNd):
         self.dim_out = [0, 2, 3]
 
         self.weight = nn.Parameter(torch.Tensor(self.out_features, self.in_features // self.groups, *self.kernel_size).to(device))
-        nn.init.kaiming_uniform_(self.weight, a=math.sqrt(5))
+        nn.init.kaiming_normal_(self.weight, a=math.sqrt(5))
         self.strength = self.weight.numel()
 
     def forward(self, x):    
