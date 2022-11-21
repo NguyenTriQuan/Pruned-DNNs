@@ -6,11 +6,29 @@ from utils import *
 from arguments import get_args
 args = get_args()
 
+def _calculate_fan_in_and_fan_out(tensor):
+    dimensions = tensor.dim()
+    if dimensions < 2:
+        raise ValueError("Fan in and fan out can not be computed for tensor with fewer than 2 dimensions")
+
+    num_input_fmaps = tensor.size(1)
+    num_output_fmaps = tensor.size(0)
+    receptive_field_size = 1
+    if tensor.dim() > 2:
+        # math.prod is not always available, accumulate the product manually
+        # we could use functools.reduce but that is not supported by TorchScript
+        for s in tensor.shape[2:]:
+            receptive_field_size *= s
+    fan_in = num_input_fmaps * receptive_field_size
+    fan_out = num_output_fmaps * receptive_field_size
+
+    return fan_in, fan_out
+
 class VGG(nn.Module):
     '''
     VGG model 
     '''
-    def __init__(self, input_size, output_size, cfg, mul=1, batch_norm=False, bias=False):
+    def __init__(self, input_size, output_size, cfg, mul=1, batch_norm=False, bias=True):
         super(VGG, self).__init__()
         mul = args.mul
         n_channels, size, _ = input_size
@@ -41,33 +59,26 @@ class VGG(nn.Module):
 
     def initialize(self):
         for m in self.layers:
-            if isinstance(m, nn.Linear):
+            if isinstance(m, nn.Linear) or isinstance(m, nn.Conv2d):
                 gain = torch.nn.init.calculate_gain('relu', math.sqrt(5))
-                bound = gain / math.sqrt(m.in_features)
-                nn.init.normal_(m.weight, 0, bound)
-                if m.bias is not None:
-                    nn.init.constant_(m.bias, 0)
-            elif isinstance(m, nn.Conv2d):
-                gain = torch.nn.init.calculate_gain('relu', math.sqrt(5))
-                bound = gain / math.sqrt(m.in_channels * np.prod(m.kernel_size))
+                fan_in, fan_out = _calculate_fan_in_and_fan_out(m.weight)
+                bound = gain / math.sqrt(fan_in)
                 nn.init.normal_(m.weight, 0, bound)
                 if m.bias is not None:
                     nn.init.constant_(m.bias, 0)
 
     def normalize(self):
         for m in self.layers:
-            if isinstance(m, nn.Linear):
+            if isinstance(m, nn.Linear) or isinstance(m, nn.Conv2d):
                 gain = torch.nn.init.calculate_gain('relu', math.sqrt(5))
-                bound = gain / math.sqrt(m.in_features)
+                fan_in, fan_out = _calculate_fan_in_and_fan_out(m.weight)
+                bound = gain / math.sqrt(fan_in)
                 mean = m.weight.mean().detach()
                 std = m.weight.std(unbiased=False).detach()
                 m.weight.data = bound * (m.weight.data - mean) / std
-            elif isinstance(m, nn.Conv2d):
-                gain = torch.nn.init.calculate_gain('relu', math.sqrt(5))
-                bound = gain / math.sqrt(m.in_channels * np.prod(m.kernel_size))
-                mean = m.weight.mean().detach()
-                std = m.weight.std(unbiased=False).detach()
-                m.weight.data = bound * (m.weight.data - mean) / std
+        
+    def compute_norm(self):
+        return
 
 
 def make_layers(cfg, n_channels, mul=1, batch_norm=False, bias=False):
