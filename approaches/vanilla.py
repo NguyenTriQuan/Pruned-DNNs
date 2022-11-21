@@ -188,6 +188,7 @@ class Appr(object):
         self.optimizer.zero_grad()
         loss.backward() 
         self.optimizer.step()
+        self.model.normalize()
 
     def eval_batch(self,images, targets):
         outputs = self.model.forward(images)

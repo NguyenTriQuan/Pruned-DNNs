@@ -26,8 +26,9 @@ class _SparseModel(nn.Module):
         super(_SparseModel, self).__init__()
 
     def forward(self, x):
-        for module in self.layers:
+        for module in self.layers[:-1]:
             x = module(x)
+        x = self.layers[-1](x)
         return x
 
     def count_params(self):

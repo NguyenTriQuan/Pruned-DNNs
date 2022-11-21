@@ -138,6 +138,11 @@ class _SparseLayer(nn.Module):
             strength = self.strength/total_strength
             self.weight.data = proximal_operator(self.weight.data, strength)
             self.mask = (self.weight.data != 0)
+            # self.scale = self.bound / self.weight.std().detach()
+            std = self.weight.std().detach()
+            mean = self.weight.mean().detach()
+            self.weight.data = self.bound * (self.weight.data - mean) / std
+            # self.weight.data = self.bound * (self.weight.data) / std
             # if self.bias is not None:
             #     self.bias.data = proximal_operator(self.bias.data, strength)
 
@@ -187,7 +192,11 @@ class SparseLinear(_SparseLayer):
         self.dim_out = [0]
 
         self.weight = nn.Parameter(torch.Tensor(self.out_features, self.in_features).to(device))
-        nn.init.kaiming_normal_(self.weight, a=math.sqrt(5))
+        gain = torch.nn.init.calculate_gain('relu', math.sqrt(5))
+        self.bound = gain / math.sqrt(self.in_features)
+        nn.init.normal_(self.weight, 0, self.bound)
+        self.scale = self.bound / self.weight.std().detach()
+        # nn.init.kaiming_normal_(self.weight, a=math.sqrt(5))
         self.strength = self.weight.numel()
         self.mask = (self.weight.data != 0).detach()
 
@@ -232,7 +241,13 @@ class SparseConv2D(_SparseConvNd):
         self.dim_out = [0, 2, 3]
 
         self.weight = nn.Parameter(torch.Tensor(self.out_features, self.in_features // self.groups, *self.kernel_size).to(device))
-        nn.init.kaiming_normal_(self.weight, a=math.sqrt(5))
+
+        gain = torch.nn.init.calculate_gain('relu', math.sqrt(5))
+        self.bound = gain / math.sqrt(self.in_features * np.prod(self.kernel_size))
+        nn.init.normal_(self.weight, 0, self.bound)
+        self.scale = self.bound / self.weight.std().detach()
+
+        # nn.init.kaiming_normal_(self.weight, a=math.sqrt(5))
         self.strength = self.weight.numel()
         self.mask = (self.weight.data != 0).detach()
 

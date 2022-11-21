@@ -10,11 +10,11 @@ class VGG(nn.Module):
     '''
     VGG model 
     '''
-    def __init__(self, input_size, output_size, cfg, mul=1, batch_norm=False):
+    def __init__(self, input_size, output_size, cfg, mul=1, batch_norm=False, bias=False):
         super(VGG, self).__init__()
         mul = args.mul
         n_channels, size, _ = input_size
-        self.layers = make_layers(cfg, n_channels, mul=mul, batch_norm=batch_norm)
+        self.layers = make_layers(cfg, n_channels, mul=mul, batch_norm=batch_norm, bias=bias)
 
         self.smid = size
         for m in self.layers:
@@ -26,20 +26,51 @@ class VGG(nn.Module):
 
         self.layers += nn.ModuleList([
             nn.Flatten(),
-            nn.Linear(int(512*self.smid*self.smid*mul), int(4096*mul)),
+            nn.Linear(int(512*self.smid*self.smid*mul), int(4096*mul), bias=bias),
             nn.ReLU(True),
-            nn.Linear(int(4096*mul), int(4096*mul)),
+            nn.Linear(int(4096*mul), int(4096*mul), bias=bias),
             nn.ReLU(True),
             nn.Linear(int(4096*mul), output_size),
         ])
+        self.initialize()
 
     def forward(self, x):
         for m in self.layers:
             x = m(x)
         return x
 
+    def initialize(self):
+        for m in self.layers:
+            if isinstance(m, nn.Linear):
+                gain = torch.nn.init.calculate_gain('relu', math.sqrt(5))
+                bound = gain / math.sqrt(m.in_features)
+                nn.init.normal_(m.weight, 0, bound)
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+            elif isinstance(m, nn.Conv2d):
+                gain = torch.nn.init.calculate_gain('relu', math.sqrt(5))
+                bound = gain / math.sqrt(m.in_channels * np.prod(m.kernel_size))
+                nn.init.normal_(m.weight, 0, bound)
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
 
-def make_layers(cfg, n_channels, mul=1, batch_norm=False):
+    def normalize(self):
+        for m in self.layers:
+            if isinstance(m, nn.Linear):
+                gain = torch.nn.init.calculate_gain('relu', math.sqrt(5))
+                bound = gain / math.sqrt(m.in_features)
+                mean = m.weight.mean().detach()
+                std = m.weight.std(unbiased=False).detach()
+                m.weight.data = bound * (m.weight.data - mean) / std
+            elif isinstance(m, nn.Conv2d):
+                gain = torch.nn.init.calculate_gain('relu', math.sqrt(5))
+                bound = gain / math.sqrt(m.in_channels * np.prod(m.kernel_size))
+                mean = m.weight.mean().detach()
+                std = m.weight.std(unbiased=False).detach()
+                m.weight.data = bound * (m.weight.data - mean) / std
+
+
+def make_layers(cfg, n_channels, mul=1, batch_norm=False, bias=False):
     layers = []
     in_channels = n_channels
     for v in cfg:
@@ -47,7 +78,7 @@ def make_layers(cfg, n_channels, mul=1, batch_norm=False):
             layers += [nn.MaxPool2d(kernel_size=2, stride=2)]
         else:
             v = int(v*mul)
-            conv2d = nn.Conv2d(in_channels, v, kernel_size=3, padding=1)
+            conv2d = nn.Conv2d(in_channels, v, kernel_size=3, padding=1, bias=bias)
             if batch_norm:
                 layers += [conv2d, nn.BatchNorm2d(v), nn.ReLU(inplace=True)]
             else:
