@@ -60,7 +60,7 @@ class VGG(nn.Module):
     def initialize(self):
         for m in self.layers:
             if isinstance(m, nn.Linear) or isinstance(m, nn.Conv2d):
-                gain = torch.nn.init.calculate_gain('relu', math.sqrt(5))
+                gain = torch.nn.init.calculate_gain('relu')
                 fan_in, fan_out = _calculate_fan_in_and_fan_out(m.weight)
                 bound = gain / math.sqrt(fan_in)
                 nn.init.normal_(m.weight, 0, bound)
@@ -70,7 +70,7 @@ class VGG(nn.Module):
     def normalize(self):
         for m in self.layers:
             if isinstance(m, nn.Linear) or isinstance(m, nn.Conv2d):
-                gain = torch.nn.init.calculate_gain('relu', math.sqrt(5))
+                gain = torch.nn.init.calculate_gain('relu')
                 fan_in, fan_out = _calculate_fan_in_and_fan_out(m.weight)
                 bound = gain / math.sqrt(fan_in)
                 mean = m.weight.mean().detach()
@@ -104,45 +104,34 @@ cfg = {
     'C': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 'M', 512, 512, 512, 'M', 512, 512, 512, 'M'],
     'D': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 256, 'M', 512, 512, 512, 512, 'M', 
           512, 512, 512, 512, 'M'],
+    'E': [64, 64, 64, 64, 64, 'M', 128, 128, 128, 128, 128, 'M', 256, 256, 256, 256, 256, 'M', 512, 512, 512, 512, 512, 'M', 
+          512, 512, 512, 512, 512, 'M'],
 }
 
 
 def VGG11(input_size,output_size,mul=1):
-    """VGG 11-layer model (configuration "A")"""
     return VGG(input_size, output_size, cfg['A'], batch_norm=False)
 
-
 def VGG11_BN(input_size,output_size,mul=1):
-    """VGG 11-layer model (configuration "A") with batch normalization"""
     return VGG(input_size,output_size, cfg['A'], batch_norm=True)
 
-
 def VGG13(input_size,output_size,mul=1):
-    """VGG 13-layer model (configuration "B")"""
     return VGG(input_size,output_size, cfg['B'], batch_norm=False)
 
-
 def VGG13_BN(input_size,output_size,mul=1):
-    """VGG 13-layer model (configuration "B") with batch normalization"""
     return VGG(input_size,output_size, cfg['B'], batch_norm=True)
 
-
 def VGG16(input_size,output_size,mul=1):
-    """VGG 16-layer model (configuration "D")"""
     return VGG(input_size,output_size, cfg['C'], batch_norm=False)
 
-
 def VGG16_BN(input_size,output_size,mul=1):
-    """VGG 16-layer model (configuration "D") with batch normalization"""
     return VGG(input_size,output_size, cfg['C'], batch_norm=True)
 
-
 def VGG19(input_size,output_size,mul=1):
-    """VGG 19-layer model (configuration "E")"""
     return VGG(input_size,output_size, cfg['D'], batch_norm=False)
 
-
 def VGG19_BN(input_size,output_size,mul=1):
-    """VGG 19-layer model (configuration 'E') with batch normalization"""
     return VGG(input_size,output_size, cfg['D'], batch_norm=True)
 
+def CustomVGG(input_size,output_size,mul=1):
+    return VGG(input_size,output_size, cfg['E'], batch_norm=False)
