@@ -32,7 +32,7 @@ class Appr(object):
     def __init__(self, input_size, output_size, args):
         Net = getattr(network, args.arch)
         self.model = Net(input_size=input_size, output_size=output_size, batch_norm=args.norm_type).to(device)
-        
+        print(self.model)
         self.nepochs = args.nepochs
         self.batch_size = args.batch_size
         self.val_batch_size = args.val_batch_size
@@ -152,16 +152,17 @@ class Appr(object):
                     patience = self.lr_patience
                     print(' *', end='')
                 else:
-                    patience -= 1
-                    if patience <= 0:
-                        lr /= self.lr_factor
-                        print(' lr={:.1e}'.format(lr), end='')
-                        if lr < self.lr_min:
-                            print()
-                            break
-                            
-                        patience = self.lr_patience
-                        self.optimizer = self._get_optimizer(lr)
+                    if e > 50:
+                        patience -= 1
+                        if patience <= 0:
+                            lr /= self.lr_factor
+                            print(' lr={:.1e}'.format(lr), end='')
+                            if lr < self.lr_min:
+                                print()
+                                break
+                                
+                            patience = self.lr_patience
+                            self.optimizer = self._get_optimizer(lr)
 
                 print()
                 train_accs.append(train_acc)
