@@ -1,5 +1,5 @@
 import argparse
-
+import math
 
 def get_args():
     parser = argparse.ArgumentParser(description='Continual')
@@ -61,7 +61,7 @@ def get_args():
                                  'SGD_momentum_decay', 
                                  'Adam'], 
                         help='(default=%(default)s)')
-    parser.add_argument('--ablation', default='full', type=str, required=False,
+    parser.add_argument('--ablation', default='', type=str, required=False,
                         # choices=['no_ensemble',
                         #         'no_scale',
                         #         'no_scale_ensemble',
@@ -111,6 +111,8 @@ def get_args():
     parser.add_argument('--augment', default=False, action='store_true', help='(default=%(default)s)')
     parser.add_argument('--prune_method', type=str, default='pgd', help='(default=%(default)s)')
     parser.add_argument('--train_size', default=1.0, type=float, required=False, help='(default=%(default)s)')
+    parser.add_argument('--activation', type=str, default='relu', help='(default=%(default)s)')
+    parser.add_argument('--negative_slope', default=math.sqrt(5), type=float, required=False, help='(default=%(default)s)')
     
     
 

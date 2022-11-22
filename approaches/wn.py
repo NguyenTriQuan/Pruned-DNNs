@@ -15,7 +15,7 @@ import kornia as K
 import time
 import csv
 from utils import *
-import networks.net as network
+import networks.wn_net as network
 import matplotlib.pyplot as plt
 import torchvision.transforms as transforms
 from sklearn.utils import shuffle
@@ -188,6 +188,8 @@ class Appr(object):
         self.optimizer.zero_grad()
         loss.backward() 
         self.optimizer.step()
+        if 'normalize' not in self.ablation:
+            self.model.normalize()
 
     def eval_batch(self,images, targets):
         outputs = self.model.forward(images)

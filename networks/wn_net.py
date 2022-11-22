@@ -2,7 +2,7 @@ import sys
 import torch
 import torch.nn.functional as F
 from utils import *
-
+from layers.wn_layer import _WeightNormLayer, WeightNormLinear, WeightNormConv2D
 from arguments import get_args
 args = get_args()
 
@@ -28,23 +28,14 @@ class VGG(nn.Module):
     '''
     VGG model 
     '''
-    def __init__(self, input_size, output_size, cfg, mul=1, batch_norm=False, bias=True):
+    def __init__(self, input_size, output_size, cfg, mul=1, batch_norm=False, bias=False):
         super(VGG, self).__init__()
         mul = args.mul
         n_channels, size, _ = input_size
-        if args.activation == 'leaky_relu':
-            self.activation = nn.LeakyReLU(args.negative_slope, inplace=True)
-            self.gain = torch.nn.init.calculate_gain('leaky_relu', args.negative_slope)
-        else:
-            self.activation = nn.ReLU(inplace=True)
-            self.gain = torch.nn.init.calculate_gain('relu')
-
-        print(f'Activavtion: {args.activation}, gain = {self.gain}, norm_type: {batch_norm}')
-        self.layers = make_layers(cfg, n_channels, activation=self.activation, mul=mul, batch_norm=batch_norm, bias=bias)
-
+        self.layers = make_layers(cfg, n_channels, mul=mul, batch_norm=batch_norm, bias=bias)
         self.smid = size
         for m in self.layers:
-            if isinstance(m, nn.Conv2d) or isinstance(m, nn .MaxPool2d):
+            if isinstance(m, WeightNormConv2D) or isinstance(m, nn .MaxPool2d):
                 try:
                     self.smid = compute_conv_output_size(self.smid, m.kernel_size[0], m.stride[0], m.padding[0], m.dilation[0])
                 except:
@@ -52,21 +43,31 @@ class VGG(nn.Module):
 
         self.layers += nn.ModuleList([
             nn.Flatten(),
-            nn.Linear(int(512*self.smid*self.smid*mul), int(4096*mul), bias=bias),
-            self.activation,
-            nn.Linear(int(4096*mul), int(4096*mul), bias=bias),
-            self.activation,
+            WeightNormLinear(int(512*self.smid*self.smid*mul), int(4096*mul), bias=bias, activation='prelu'),
+            WeightNormLinear(int(4096*mul), int(4096*mul), bias=bias, activation='prelu'),
             nn.Linear(int(4096*mul), output_size),
         ])
+        gain = torch.nn.init.calculate_gain('leaky_relu', args.negative_slope)
+        fan_in, fan_out = _calculate_fan_in_and_fan_out(self.layers[-1].weight)
+        bound = gain / math.sqrt(fan_in)
+        nn.init.normal_(self.layers[-1].weight, 0, bound)
+        nn.init.constant_(self.layers[-1].bias, 0)
 
     def forward(self, x):
         for m in self.layers:
             x = m(x)
         return x
 
+    def normalize(self):
+        for m in self.layers:
+            if isinstance(m, _WeightNormLayer):
+                m.normalize()
+        
+    def compute_norm(self):
+        return
 
 
-def make_layers(cfg, n_channels, activation, mul=1, batch_norm=False, bias=True):
+def make_layers(cfg, n_channels, mul=1, batch_norm=False, bias=False):
     layers = []
     in_channels = n_channels
     for v in cfg:
@@ -74,11 +75,11 @@ def make_layers(cfg, n_channels, activation, mul=1, batch_norm=False, bias=True)
             layers += [nn.MaxPool2d(kernel_size=2, stride=2)]
         else:
             v = int(v*mul)
-            conv2d = nn.Conv2d(in_channels, v, kernel_size=3, padding=1, bias=bias)
+            conv2d = WeightNormConv2D(in_channels, v, kernel_size=3, padding=1, bias=bias, activation='prelu')
             if batch_norm:
-                layers += [conv2d, nn.BatchNorm2d(v), activation]
+                layers += [conv2d, nn.BatchNorm2d(v)]
             else:
-                layers += [conv2d, activation]
+                layers += [conv2d]
             in_channels = v
     return nn.ModuleList(layers)
 
