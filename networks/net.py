@@ -45,9 +45,11 @@ class VGG(nn.Module):
         self.layers += nn.ModuleList([
             nn.Flatten(),
             nn.Linear(int(512*self.smid*self.smid*mul), int(4096*mul), bias=bias),
-            nn.ReLU(True),
+            # nn.ReLU(True),
+            nn.LeakyReLU(math.sqrt(5), inplace=True),
             nn.Linear(int(4096*mul), int(4096*mul), bias=bias),
-            nn.ReLU(True),
+            # nn.ReLU(True),
+            nn.LeakyReLU(math.sqrt(5), inplace=True),
             nn.Linear(int(4096*mul), output_size),
         ])
         self.initialize()
@@ -60,7 +62,8 @@ class VGG(nn.Module):
     def initialize(self):
         for m in self.layers:
             if isinstance(m, nn.Linear) or isinstance(m, nn.Conv2d):
-                gain = torch.nn.init.calculate_gain('relu')
+                # gain = torch.nn.init.calculate_gain('relu')
+                gain = torch.nn.init.calculate_gain('leaky_relu', math.sqrt(5))
                 fan_in, fan_out = _calculate_fan_in_and_fan_out(m.weight)
                 bound = gain / math.sqrt(fan_in)
                 nn.init.normal_(m.weight, 0, bound)
@@ -70,7 +73,8 @@ class VGG(nn.Module):
     def normalize(self):
         for m in self.layers:
             if isinstance(m, nn.Linear) or isinstance(m, nn.Conv2d):
-                gain = torch.nn.init.calculate_gain('relu')
+                # gain = torch.nn.init.calculate_gain('relu')
+                gain = torch.nn.init.calculate_gain('leaky_relu', math.sqrt(5))
                 fan_in, fan_out = _calculate_fan_in_and_fan_out(m.weight)
                 bound = gain / math.sqrt(fan_in)
                 mean = m.weight.mean().detach()
@@ -91,9 +95,11 @@ def make_layers(cfg, n_channels, mul=1, batch_norm=False, bias=False):
             v = int(v*mul)
             conv2d = nn.Conv2d(in_channels, v, kernel_size=3, padding=1, bias=bias)
             if batch_norm:
-                layers += [conv2d, nn.BatchNorm2d(v), nn.ReLU(inplace=True)]
+                # layers += [conv2d, nn.BatchNorm2d(v), nn.ReLU(inplace=True)]
+                layers += [conv2d, nn.BatchNorm2d(v), nn.LeakyReLU(math.sqrt(5), inplace=True)]
             else:
-                layers += [conv2d, nn.ReLU(inplace=True)]
+                # layers += [conv2d, nn.ReLU(inplace=True)]
+                layers += [conv2d, nn.LeakyReLU(math.sqrt(5), inplace=True)]
             in_channels = v
     return nn.ModuleList(layers)
 
