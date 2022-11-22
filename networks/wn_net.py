@@ -75,11 +75,8 @@ def make_layers(cfg, n_channels, mul=1, batch_norm=False, bias=False):
             layers += [nn.MaxPool2d(kernel_size=2, stride=2)]
         else:
             v = int(v*mul)
-            conv2d = WeightNormConv2D(in_channels, v, kernel_size=3, padding=1, bias=bias, activation='prelu')
-            if batch_norm:
-                layers += [conv2d, nn.BatchNorm2d(v)]
-            else:
-                layers += [conv2d]
+            conv2d = WeightNormConv2D(in_channels, v, kernel_size=3, padding=1, bias=bias, activation='prelu', norm_type=batch_norm)
+            layers += [conv2d]
             in_channels = v
     return nn.ModuleList(layers)
 
