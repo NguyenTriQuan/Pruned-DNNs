@@ -54,6 +54,8 @@ class _WeightNormLayer(nn.Module):
             self.activation = nn.LeakyReLU(args.negative_slope, inplace=True)
         else:
             self.activation = nn.ReLU()
+        
+        self.norm_layer = nn.BatchNorm2d(out_features)
 
     def initialize(self):
         # gain = torch.nn.init.calculate_gain('leaky_relu', self.activation.weight.data.item())
@@ -84,6 +86,7 @@ class WeightNormLinear(_WeightNormLayer):
 
     def forward(self, x):    
         x = F.linear(x, self.weight, self.bias)
+        x = self.norm_layer(x)
         return self.activation(x)
             
         
@@ -120,5 +123,6 @@ class WeightNormConv2D(_WeightNormConvNd):
 
     def forward(self, x):    
         x = F.conv2d(x, self.weight, self.bias, self.stride, self.padding, self.dilation, self.groups)
+        x = self.norm_layer(x)
         return self.activation(x)
 
