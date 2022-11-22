@@ -152,7 +152,7 @@ class Appr(object):
                     patience = self.lr_patience
                     print(' *', end='')
                 else:
-                    if e > 50:
+                    if e > 0:
                         patience -= 1
                         if patience <= 0:
                             lr /= self.lr_factor
