@@ -49,18 +49,16 @@ class _WeightNormLayer(nn.Module):
         self.in_features = in_features
         self.out_features = out_features       
         self.bias = nn.Parameter(torch.Tensor(self.out_features).uniform_(0, 0).to(device)) if bias else None
-        self.activation = nn.PReLU(1, args.negative_slope, device=device)
-        # self.activation = nn.LeakyReLU(args.negative_slope, inplace=True)
-        self.shift = nn.Parameter(torch.Tensor(1).uniform_(0, 0).to(device))
-        self.scale = nn.Parameter(torch.Tensor(1).uniform_(1, 1).to(device))
+        # self.activation = nn.PReLU(1, args.negative_slope, device=device)
+        self.activation = nn.LeakyReLU(args.negative_slope, inplace=True)
         if norm_type:
             self.norm_layer = nn.BatchNorm2d(out_features)
         else:
             self.norm_layer = None
 
     def initialize(self):
-        gain = torch.nn.init.calculate_gain('leaky_relu', self.activation.weight.data.item())
-        # gain = torch.nn.init.calculate_gain('leaky_relu', args.negative_slope)
+        # gain = torch.nn.init.calculate_gain('leaky_relu', self.activation.weight.data.item())
+        gain = torch.nn.init.calculate_gain('leaky_relu', args.negative_slope)
         fan_in, fan_out = _calculate_fan_in_and_fan_out(self.weight)
         bound = gain / math.sqrt(fan_in)
         nn.init.normal_(self.weight, 0, bound)
@@ -68,8 +66,8 @@ class _WeightNormLayer(nn.Module):
             nn.init.constant_(self.bias, 0)
     
     def normalize(self):
-        gain = torch.nn.init.calculate_gain('leaky_relu', self.activation.weight.data.item())
-        # gain = torch.nn.init.calculate_gain('leaky_relu', args.negative_slope)
+        # gain = torch.nn.init.calculate_gain('leaky_relu', self.activation.weight.data.item())
+        gain = torch.nn.init.calculate_gain('leaky_relu', args.negative_slope)
         fan_in, fan_out = _calculate_fan_in_and_fan_out(self.weight)
         bound = gain / math.sqrt(fan_in)
         mean = self.weight.mean().detach()
@@ -86,7 +84,6 @@ class WeightNormLinear(_WeightNormLayer):
         self.initialize()
 
     def forward(self, x):    
-        # weight = self.weight * self.scale + self.shift
         x = F.linear(x, self.weight, self.bias)
         return self.activation(x)
             
@@ -123,7 +120,6 @@ class WeightNormConv2D(_WeightNormConvNd):
         self.initialize()
 
     def forward(self, x): 
-        # weight = self.weight * self.scale + self.shift
         x = F.conv2d(x, self.weight, self.bias, self.stride, self.padding, self.dilation, self.groups)
         if self.norm_layer:
             x = self.norm_layer(x)
