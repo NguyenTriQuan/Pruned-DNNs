@@ -110,4 +110,4 @@ def VGG19(input_size,output_size,mul=1,batch_norm=False):
     return VGG(input_size,output_size, cfg['D'], batch_norm=batch_norm)
 
 def CustomVGG(input_size,output_size,mul=1,batch_norm=False):
-    return VGG(input_size,output_size, cfg['F'], batch_norm=batch_norm)
+    return VGG(input_size,output_size, cfg['E'], batch_norm=batch_norm)
