@@ -86,7 +86,6 @@ class WeightNormLinear(_WeightNormLayer):
 
     def forward(self, x):    
         x = F.linear(x, self.weight, self.bias)
-        x = self.norm_layer(x)
         return self.activation(x)
             
         
