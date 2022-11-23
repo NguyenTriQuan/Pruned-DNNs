@@ -512,7 +512,8 @@ def naive_lip(model, test_loader, valid_transform, n_iters=100, batch_size=1000)
             continue
         beta = torch.linalg.vector_norm(y1-y2, ord=float(2), dim=1)
         lip = max(lip, (beta/alpha).max().item())
-
+        if iter > 1000:
+            print(f'Current Lipschitz = {lip}')
         # b1 = r[:batch_size]
         # for i in range(batch_size, len(r), batch_size):
         #     if i + batch_size <= len(r):
