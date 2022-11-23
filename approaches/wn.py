@@ -159,6 +159,7 @@ class Appr(object):
                             if self.normalize:
                                 self.normalize = False
                                 patience = self.lr_patience
+                                self.optimizer = self._get_optimizer(lr)
                             else:
                                 lr /= self.lr_factor
                                 print(' lr={:.1e}'.format(lr), end='')
