@@ -28,7 +28,7 @@ class VGG(nn.Module):
     '''
     VGG model 
     '''
-    def __init__(self, input_size, output_size, cfg, mul=1, batch_norm=False, bias=False):
+    def __init__(self, input_size, output_size, cfg, mul=1, batch_norm=False, bias=True):
         super(VGG, self).__init__()
         mul = args.mul
         n_channels, size, _ = input_size
