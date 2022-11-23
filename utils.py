@@ -508,8 +508,9 @@ def naive_lip(model, test_loader, valid_transform, n_iters=100, batch_size=1000)
         x2 = X[r[X.size(0)//2:]]
         y2 = Y[r[X.size(0)//2:]]
         alpha = torch.linalg.vector_norm(x1-x2, ord=float(2), dim=1)
+        if (alpha == 0).any():
+            continue
         beta = torch.linalg.vector_norm(y1-y2, ord=float(2), dim=1)
-        print(alpha.min(), beta.max())
         lip = max(lip, (beta/alpha).max().item())
 
         # b1 = r[:batch_size]
