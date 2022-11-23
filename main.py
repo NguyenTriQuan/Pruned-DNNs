@@ -12,6 +12,7 @@ import random
 # import comet_ml at the top of your file
 # from comet_ml import Experiment, ExistingExperiment
 import json
+import torch.backends.cudnn as cudnn
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 os.makedirs('../result_data/trained_model/', exist_ok=True)
@@ -69,6 +70,10 @@ if args.resume:
 #     appr.logger.set_name(appr.log_name)
 #     with open(f'../result_data/logger/{appr.log_name}.json', 'w') as f:
 #         json.dump(appr.logger.get_key(), f)
+
+if device == 'cuda':
+    net = torch.nn.DataParallel(appr.model)
+    cudnn.benchmark = True
 
 print('-' * 100)
 print(f'Train size = {train_loader.dataset.tensors[0].shape[0]} / Test size = {test_loader.dataset.tensors[0].shape[0]}')
