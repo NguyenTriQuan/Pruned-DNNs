@@ -503,13 +503,10 @@ def naive_lip(model, test_loader, valid_transform, n_iters=100, batch_size=1000)
         r = np.arange(X.size(0))
         np.random.shuffle(r)
         r = torch.LongTensor(r).cuda()  
-        x1 = X[r]
-        y1 = Y[r]
-        r = np.arange(X.size(0))
-        np.random.shuffle(r)
-        r = torch.LongTensor(r).cuda()  
-        x2 = X[r]
-        y2 = Y[r]
+        x1 = X[r[:X.size(0)//2]]
+        y1 = Y[r[:X.size(0)//2]]  
+        x2 = X[r[X.size(0)//2:]]
+        y2 = Y[r[X.size(0)//2:]]
         alpha = torch.linalg.vector_norm(x1-x2, ord=float(2), dim=1)
         beta = torch.linalg.vector_norm(y1-y2, ord=float(2), dim=1)
         lip = max(lip, (beta/alpha).max().item())
