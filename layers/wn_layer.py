@@ -88,8 +88,8 @@ class WeightNormLinear(_WeightNormLayer):
             gain = torch.nn.init.calculate_gain('leaky_relu', args.negative_slope)
             fan_in, fan_out = _calculate_fan_in_and_fan_out(self.weight)
             bound = gain / math.sqrt(fan_in)
-            mean = self.weight.mean()
-            std = self.weight.std(unbiased=False)
+            mean = self.weight.mean(dim=1).view(-1, 1)
+            std = self.weight.std(dim=1, unbiased=False).view(-1, 1)
             weight = bound * (self.weight - mean) / std
         else:
             weight = self.weight
@@ -134,8 +134,8 @@ class WeightNormConv2D(_WeightNormConvNd):
             gain = torch.nn.init.calculate_gain('leaky_relu', args.negative_slope)
             fan_in, fan_out = _calculate_fan_in_and_fan_out(self.weight)
             bound = gain / math.sqrt(fan_in)
-            mean = self.weight.mean()
-            std = self.weight.std(unbiased=False)
+            mean = self.weight.mean(dim=(1,2,3)).view(-1, 1, 1, 1)
+            std = self.weight.std(dim=(1,2,3), unbiased=False).view(-1, 1, 1, 1)
             weight = bound * (self.weight - mean) / std
         else:
             weight = self.weight
