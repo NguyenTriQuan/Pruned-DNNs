@@ -129,7 +129,8 @@ class Appr(object):
             best_acc = train_acc
         else:
             best_acc = valid_acc
-    
+
+        self.normalize = True
         try:
             for e in range(start_epoch, self.nepochs):
                 clock0=time.time()
@@ -155,14 +156,18 @@ class Appr(object):
                     if e > 0:
                         patience -= 1
                         if patience <= 0:
-                            lr /= self.lr_factor
-                            print(' lr={:.1e}'.format(lr), end='')
-                            if lr < self.lr_min:
-                                print()
-                                break
-                                
-                            patience = self.lr_patience
-                            self.optimizer = self._get_optimizer(lr)
+                            if self.normalize:
+                                self.normalize = False
+                                patience = self.lr_patience
+                            else:
+                                lr /= self.lr_factor
+                                print(' lr={:.1e}'.format(lr), end='')
+                                if lr < self.lr_min:
+                                    print()
+                                    break
+                                    
+                                patience = self.lr_patience
+                                self.optimizer = self._get_optimizer(lr)
 
                 print()
                 train_accs.append(train_acc)
@@ -189,7 +194,7 @@ class Appr(object):
         self.optimizer.zero_grad()
         loss.backward() 
         self.optimizer.step()
-        if 'normalize' not in self.ablation:
+        if 'normalize' not in self.ablation and self.normalize:
             self.model.normalize()
 
     def eval_batch(self,images, targets):
