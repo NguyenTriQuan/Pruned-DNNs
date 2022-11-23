@@ -34,6 +34,7 @@ class VGG(nn.Module):
         n_channels, size, _ = input_size
         self.layers = make_layers(cfg, n_channels, mul=mul, batch_norm=batch_norm, bias=bias)
         self.smid = size
+        bias = args.bias
         for m in self.layers:
             if isinstance(m, WeightNormConv2D) or isinstance(m, nn .MaxPool2d):
                 try:
