@@ -83,8 +83,15 @@ class WeightNormLinear(_WeightNormLayer):
         self.weight = nn.Parameter(torch.Tensor(self.out_features, self.in_features).to(device))
         self.initialize()
 
-    def forward(self, x):    
-        x = F.linear(x, self.weight, self.bias)
+    def forward(self, x):  
+        gain = torch.nn.init.calculate_gain('leaky_relu', args.negative_slope)
+        fan_in, fan_out = _calculate_fan_in_and_fan_out(self.weight)
+        bound = gain / math.sqrt(fan_in)
+        mean = self.weight.mean().detach()
+        std = self.weight.std(unbiased=False).detach()
+        weight = bound * (self.weight - mean) / std
+
+        x = F.linear(x, weight, self.bias)
         return self.activation(x)
             
         
@@ -120,7 +127,14 @@ class WeightNormConv2D(_WeightNormConvNd):
         self.initialize()
 
     def forward(self, x): 
-        x = F.conv2d(x, self.weight, self.bias, self.stride, self.padding, self.dilation, self.groups)
+        gain = torch.nn.init.calculate_gain('leaky_relu', args.negative_slope)
+        fan_in, fan_out = _calculate_fan_in_and_fan_out(self.weight)
+        bound = gain / math.sqrt(fan_in)
+        mean = self.weight.mean().detach()
+        std = self.weight.std(unbiased=False).detach()
+        weight = bound * (self.weight - mean) / std
+
+        x = F.conv2d(x, weight, self.bias, self.stride, self.padding, self.dilation, self.groups)
         if self.norm_layer:
             x = self.norm_layer(x)
         return self.activation(x)

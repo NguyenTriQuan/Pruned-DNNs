@@ -189,8 +189,8 @@ class Appr(object):
         self.optimizer.zero_grad()
         loss.backward() 
         self.optimizer.step()
-        if 'normalize' not in self.ablation:
-            self.model.normalize()
+        # if 'normalize' not in self.ablation:
+        #     self.model.normalize()
 
     def eval_batch(self,images, targets):
         outputs = self.model.forward(images)
