@@ -16,6 +16,7 @@ import torchvision.transforms as transforms
 from torchvision import models
 import time
 import torch.nn.functional as F
+from itertools import cycle
 # from layers.sccl_gpm_layer import DynamicLinear, DynamicConv2D, _DynamicLayer
 # from torchvision.models.resnet import *
 
@@ -483,30 +484,50 @@ class logger(object):
             raise ValueError('{} isn''t a file'.format(path))
 
 
-def naive_lip(model: nn.Module, input_size, t, n_iter: int = 10, eps=1e-3, n_samples=256):
-    lip_2 = -1
-    lip_max = -1
-    lip_max_2 = -1
-    lip_2_max = -1
-    for i in range(n_iter):
-        x1 = torch.randn([n_samples] + list(input_size)).to(device)
-        alpha = ((torch.rand([n_samples] + list(input_size)) * 2 - 1) * eps).to(device)
+def naive_lip(model, test_loader, valid_transform, n_iters=100, batch_size=1000):
+    model.eval()
+    X = []
+    Y = []
+    with torch.no_grad():
+        for x, labels in test_loader:
+            x = x.to(device)
+            x = valid_transform(x)
+            y = model(x)
+            X.append(x)
+            Y.append(y)
+    X = torch.cat(X, dim=0)
+    Y = torch.cat(Y, dim=0)
+    X = X.view(X.shape[0], -1)
+    lip = -1
+    for iter in range(n_iters):
+        r = np.arange(X.size(0))
+        np.random.shuffle(r)
+        r = torch.LongTensor(r).cuda()  
+        x1 = X[r]
+        y1 = Y[r]
+        r = np.arange(X.size(0))
+        np.random.shuffle(r)
+        r = torch.LongTensor(r).cuda()  
+        x2 = X[r]
+        y2 = Y[r]
+        alpha = torch.linalg.vector_norm(x1-x2, ord=float(2), dim=1)
+        beta = torch.linalg.vector_norm(y1-y2, ord=float(2), dim=1)
+        lip = max(lip, (beta/alpha).max().item())
 
-        y1, y2 = model(x1, t), model(x1 + alpha, t)
-        beta = y2-y1
-
-        denominator_2 = torch.linalg.vector_norm(alpha.view(n_samples, -1), ord=float(2), dim=1)
-        numerator_2 = torch.linalg.vector_norm(beta.view(n_samples, -1), ord=float(2), dim=1)
-        lip_2 = max(lip_2, torch.div(numerator_2, denominator_2).max().item())
-
-        denominator_max = torch.linalg.vector_norm(alpha.view(n_samples, -1), ord=float('inf'), dim=1)
-        numerator_max = torch.linalg.vector_norm(beta.view(n_samples, -1), ord=float('inf'), dim=1)
-        lip_max = max(lip_max, torch.div(numerator_max, denominator_max).max().item())
-
-        lip_max_2 = max(lip_max_2, torch.div(numerator_max, denominator_2).max().item())
-        lip_2_max = max(lip_2_max, torch.div(numerator_2, denominator_max).max().item())
-
-    return lip_2, lip_max, lip_max_2, lip_2_max
+        # b1 = r[:batch_size]
+        # for i in range(batch_size, len(r), batch_size):
+        #     if i + batch_size <= len(r):
+        #         b2 = r[i:i+batch_size]
+        #     else:
+        #         break
+        #     x1 = X[b1]
+        #     y1 = Y[b1]
+        #     x2 = X[b2]
+        #     y2 = Y[b2]
+        #     alpha = torch.linalg.vector_norm(x1-x2, ord=float(2), dim=1)
+        #     beta = torch.linalg.vector_norm(y1-y2, ord=float(2), dim=1)
+        #     lip = max(lip, (beta/alpha).max().item())
+    return lip
 
 def KMeans(x, K=2, Niter=10, verbose=False, use_cuda=True):
     """Implements Lloyd's algorithm for the Euclidean metric."""
