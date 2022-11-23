@@ -90,6 +90,8 @@ class WeightNormLinear(_WeightNormLayer):
             bound = gain / math.sqrt(fan_in)
             mean = self.weight.mean(dim=1).view(-1, 1)
             std = self.weight.std(dim=1, unbiased=False).view(-1, 1)
+            # mean = self.weight.mean()
+            # std = self.weight.std(unbiased=False)
             weight = bound * (self.weight - mean) / std
         else:
             weight = self.weight
@@ -136,6 +138,8 @@ class WeightNormConv2D(_WeightNormConvNd):
             bound = gain / math.sqrt(fan_in)
             mean = self.weight.mean(dim=(1,2,3)).view(-1, 1, 1, 1)
             std = self.weight.std(dim=(1,2,3), unbiased=False).view(-1, 1, 1, 1)
+            # mean = self.weight.mean()
+            # std = self.weight.std(unbiased=False)
             weight = bound * (self.weight - mean) / std
         else:
             weight = self.weight
