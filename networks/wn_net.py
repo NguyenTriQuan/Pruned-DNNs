@@ -28,9 +28,8 @@ class VGG(nn.Module):
     '''
     VGG model 
     '''
-    def __init__(self, input_size, output_size, cfg, mul=1, batch_norm=False, bias=True):
+    def __init__(self, input_size, output_size, cfg, mul=1, batch_norm=False, bias=False):
         super(VGG, self).__init__()
-        bias = args.bias
         mul = args.mul
         n_channels, size, _ = input_size
         self.layers = make_layers(cfg, n_channels, mul=mul, batch_norm=batch_norm, bias=bias)

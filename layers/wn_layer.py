@@ -72,9 +72,9 @@ class _WeightNormLayer(nn.Module):
         bound = gain / math.sqrt(fan_in)
         # mean = self.weight.mean().detach()
         # std = self.weight.std(unbiased=False).detach()
-        # mean = self.weight.mean(dim=self.norm_dim).detach().view(self.norm_view)
+        mean = self.weight.mean(dim=self.norm_dim).detach().view(self.norm_view)
         std = self.weight.std(dim=self.norm_dim, unbiased=False).detach().view(self.norm_view)
-        self.weight.data = bound * (self.weight.data) / std
+        self.weight.data = bound * (self.weight.data - mean) / std
 
 
 class WeightNormLinear(_WeightNormLayer):
