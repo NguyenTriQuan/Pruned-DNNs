@@ -78,7 +78,7 @@ if device == 'cuda':
 print('-' * 100)
 print(f'Train size = {train_loader.dataset.tensors[0].shape[0]} / Test size = {test_loader.dataset.tensors[0].shape[0]}')
 
-lip = naive_lip(appr.model, test_loader, valid_transform, n_iters=10000, batch_size=5000)
+lip = naive_lip(appr.model, test_loader, valid_transform, n_iters=50000, batch_size=5000)
 print(f'Lipschitz = {lip}')
 
 appr.train(train_loader, test_loader, train_transform, valid_transform)
@@ -86,7 +86,7 @@ appr.train(train_loader, test_loader, train_transform, valid_transform)
 test_loss, test_acc = appr.eval(test_loader, valid_transform)
 print('>>> Test: loss={:.3f}, acc={:5.2f}% <<<'.format(test_loss, 100 * test_acc))
 
-lip = naive_lip(appr.model, test_loader, valid_transform, n_iters=10000, batch_size=5000)
+lip = naive_lip(appr.model, test_loader, valid_transform, n_iters=50000, batch_size=5000)
 print(f'Lipschitz = {lip}')
 
 print('[Elapsed time = {:.1f} h]'.format((time.time() - tstart) / (60 * 60)))
