@@ -70,8 +70,10 @@ class _WeightNormLayer(nn.Module):
         gain = torch.nn.init.calculate_gain('leaky_relu', args.negative_slope)
         fan_in, fan_out = _calculate_fan_in_and_fan_out(self.weight)
         bound = gain / math.sqrt(fan_in)
-        mean = self.weight.mean().detach()
-        std = self.weight.std(unbiased=False).detach()
+        # mean = self.weight.mean().detach()
+        # std = self.weight.std(unbiased=False).detach()
+        mean = self.weight.mean(dim=self.norm_dim).detach().view(self.norm_view)
+        std = self.weight.std(dim=self.norm_dim, unbiased=False).detach().view(self.norm_view)
         self.weight.data = bound * (self.weight.data - mean) / std
 
 
@@ -82,21 +84,11 @@ class WeightNormLinear(_WeightNormLayer):
 
         self.weight = nn.Parameter(torch.Tensor(self.out_features, self.in_features).to(device))
         self.initialize()
+        self.norm_dim = (1)
+        self.norm_view = (-1, 1)
 
     def forward(self, x):  
-        if self.training:
-            gain = torch.nn.init.calculate_gain('leaky_relu', args.negative_slope)
-            fan_in, fan_out = _calculate_fan_in_and_fan_out(self.weight)
-            bound = gain / math.sqrt(fan_in)
-            mean = self.weight.mean(dim=1).view(-1, 1)
-            std = self.weight.std(dim=1, unbiased=False).view(-1, 1)
-            # mean = self.weight.mean()
-            # std = self.weight.std(unbiased=False)
-            weight = bound * (self.weight - mean) / std
-        else:
-            weight = self.weight
-
-        x = F.linear(x, weight, self.bias)
+        x = F.linear(x, self.weight, self.bias)
         return self.activation(x)
             
         
@@ -130,21 +122,11 @@ class WeightNormConv2D(_WeightNormConvNd):
 
         self.weight = nn.Parameter(torch.Tensor(self.out_features, self.in_features // self.groups, *self.kernel_size).to(device))
         self.initialize()
+        self.norm_dim = (1, 2, 3)
+        self.norm_view = (-1, 1, 1, 1)
 
     def forward(self, x): 
-        if self.training:
-            gain = torch.nn.init.calculate_gain('leaky_relu', args.negative_slope)
-            fan_in, fan_out = _calculate_fan_in_and_fan_out(self.weight)
-            bound = gain / math.sqrt(fan_in)
-            mean = self.weight.mean(dim=(1,2,3)).view(-1, 1, 1, 1)
-            std = self.weight.std(dim=(1,2,3), unbiased=False).view(-1, 1, 1, 1)
-            # mean = self.weight.mean()
-            # std = self.weight.std(unbiased=False)
-            weight = bound * (self.weight - mean) / std
-        else:
-            weight = self.weight
-
-        x = F.conv2d(x, weight, self.bias, self.stride, self.padding, self.dilation, self.groups)
+        x = F.conv2d(x, self.weight, self.bias, self.stride, self.padding, self.dilation, self.groups)
         if self.norm_layer:
             x = self.norm_layer(x)
         return self.activation(x)
