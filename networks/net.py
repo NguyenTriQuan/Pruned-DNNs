@@ -32,14 +32,14 @@ class VGG(nn.Module):
         super(VGG, self).__init__()
         mul = args.mul
         n_channels, size, _ = input_size
-        if args.activation == 'leaky_relu':
-            self.activation = nn.LeakyReLU(args.negative_slope, inplace=True)
-            self.gain = torch.nn.init.calculate_gain('leaky_relu', args.negative_slope)
-        else:
-            self.activation = nn.ReLU(inplace=True)
-            self.gain = torch.nn.init.calculate_gain('relu')
-
-        print(f'Activavtion: {args.activation}, gain = {self.gain}, norm_type: {batch_norm}')
+        # if args.activation == 'leaky_relu':
+        #     self.activation = nn.LeakyReLU(args.negative_slope, inplace=True)
+        #     self.gain = torch.nn.init.calculate_gain('leaky_relu', args.negative_slope)
+        # else:
+        #     self.activation = nn.ReLU(inplace=True)
+        #     self.gain = torch.nn.init.calculate_gain('relu')
+        self.activation = nn.ReLU(inplace=True)
+        # print(f'Activavtion: {args.activation}, gain = {self.gain}, norm_type: {batch_norm}')
         self.layers = make_layers(cfg, n_channels, activation=self.activation, mul=mul, batch_norm=batch_norm, bias=bias)
 
         self.smid = size
@@ -58,6 +58,18 @@ class VGG(nn.Module):
             self.activation,
             nn.Linear(int(4096*mul), output_size),
         ])
+
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight, mode="fan_out", nonlinearity="relu")
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+            elif isinstance(m, nn.BatchNorm2d):
+                nn.init.constant_(m.weight, 1)
+                nn.init.constant_(m.bias, 0)
+            elif isinstance(m, nn.Linear):
+                nn.init.normal_(m.weight, 0, 0.01)
+                nn.init.constant_(m.bias, 0)
 
     def forward(self, x):
         for m in self.layers:

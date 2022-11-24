@@ -32,7 +32,7 @@ class Appr(object):
     def __init__(self, input_size, output_size, args):
         Net = getattr(network, args.arch)
         self.model = Net(input_size=input_size, output_size=output_size, batch_norm=args.norm_type).to(device)
-        
+        print(self.model)
         self.nepochs = args.nepochs
         self.batch_size = args.batch_size
         self.val_batch_size = args.val_batch_size
@@ -122,7 +122,7 @@ class Appr(object):
         self.optimizer = self.check_point['optimizer']
         start_epoch = self.check_point['epoch'] + 1
         squeeze = self.check_point['squeeze']
-
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimizer, self.nepochs)
         train_accs = []
         valid_accs = []
         if squeeze:
@@ -145,23 +145,24 @@ class Appr(object):
                 valid_loss,valid_acc=self.eval(valid_loader, valid_transform)
                 print(' Valid: loss={:.3f}, acc={:5.2f}% |'.format(valid_loss,100*valid_acc),end='')
                 # Adapt lr
+                scheduler.step()
                 if valid_acc > best_acc:
                     best_acc = valid_acc
                     self.check_point = {'model':self.model, 'optimizer':self.optimizer, 'squeeze':squeeze, 'epoch':e, 'lr':lr, 'patience':patience}
                     torch.save(self.check_point,'../result_data/trained_model/{}.model'.format(self.log_name))
                     patience = self.lr_patience
                     print(' *', end='')
-                else:
-                    patience -= 1
-                    if patience <= 0:
-                        lr /= self.lr_factor
-                        print(' lr={:.1e}'.format(lr), end='')
-                        if lr < self.lr_min:
-                            print()
-                            break
+                # else:
+                #     patience -= 1
+                #     if patience <= 0:
+                #         lr /= self.lr_factor
+                #         print(' lr={:.1e}'.format(lr), end='')
+                #         if lr < self.lr_min:
+                #             print()
+                #             break
                             
-                        patience = self.lr_patience
-                        self.optimizer = self._get_optimizer(lr)
+                #         patience = self.lr_patience
+                #         self.optimizer = self._get_optimizer(lr)
 
                 print()
                 train_accs.append(train_acc)
