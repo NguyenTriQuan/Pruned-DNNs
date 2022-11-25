@@ -45,7 +45,8 @@ class VGG(nn.Module):
             nn.Flatten(),
             WeightNormLinear(int(512*self.smid*self.smid*mul), int(4096*mul), bias=bias, activation='prelu'),
             WeightNormLinear(int(4096*mul), int(4096*mul), bias=bias, activation='prelu'),
-            nn.Linear(int(4096*mul), output_size),
+            # nn.Linear(int(4096*mul), output_size),
+            WeightNormLinear(int(4096*mul), output_size, bias=True),
         ])
         gain = torch.nn.init.calculate_gain('leaky_relu', args.negative_slope)
         fan_in, fan_out = _calculate_fan_in_and_fan_out(self.layers[-1].weight)
