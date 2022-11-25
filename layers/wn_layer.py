@@ -84,27 +84,20 @@ class _WeightNormLayer(nn.Module):
             nn.init.constant_(self.bias, 0)
     
     def normalize(self):
-        if self.activation == 'leaky_relu':
-            # gain = torch.nn.init.calculate_gain('leaky_relu', self.activation.weight.data.item())
-            # gain = torch.nn.init.calculate_gain('leaky_relu', args.negative_slope)
-            fan_in, fan_out = _calculate_fan_in_and_fan_out(self.weight)
-            bound = self.gain / math.sqrt(fan_in)
-            # mean = self.weight.mean().detach()
-            # std = self.weight.std(unbiased=False).detach()
-            mean = self.weight.mean(dim=self.norm_dim).detach().view(self.norm_view)
-            std = self.weight.std(dim=self.norm_dim, unbiased=False).detach().view(self.norm_view)
-            self.weight.data = bound * (self.weight.data - mean) / std
-        # else:
-        #     fan_in, fan_out = _calculate_fan_in_and_fan_out(self.weight)
-        #     bound = self.gain / math.sqrt(fan_in)
-        #     # mean = self.weight.mean(dim=self.norm_dim).detach().view(self.norm_view)
-        #     std = self.weight.std(dim=self.norm_dim, unbiased=False).detach().view(self.norm_view)
-        #     self.weight.data = bound * (self.weight.data) / std
+        # gain = torch.nn.init.calculate_gain('leaky_relu', self.activation.weight.data.item())
+        # gain = torch.nn.init.calculate_gain('leaky_relu', args.negative_slope)
+        fan_in, fan_out = _calculate_fan_in_and_fan_out(self.weight)
+        bound = self.gain / math.sqrt(fan_in)
+        # mean = self.weight.mean().detach()
+        # std = self.weight.std(unbiased=False).detach()
+        mean = self.weight.mean(dim=self.norm_dim).detach().view(self.norm_view)
+        std = self.weight.std(dim=self.norm_dim, unbiased=False).detach().view(self.norm_view)
+        self.weight.data = bound * (self.weight.data - mean) / std
 
 
 class WeightNormLinear(_WeightNormLayer):
 
-    def __init__(self, in_features, out_features, bias=False, activation='prelu', norm_type=None):
+    def __init__(self, in_features, out_features, bias=False, activation='leaky_relu', norm_type=None):
         super(WeightNormLinear, self).__init__(in_features, out_features, bias, activation, norm_type)
 
         self.weight = nn.Parameter(torch.Tensor(self.out_features, self.in_features).to(device))
@@ -137,7 +130,7 @@ class _WeightNormConvNd(_WeightNormLayer):
 
 class WeightNormConv2D(_WeightNormConvNd):
     def __init__(self, in_features, out_features, kernel_size, 
-                stride=1, padding=0, dilation=1, groups=1, bias=False, activation='prelu', norm_type=None):
+                stride=1, padding=0, dilation=1, groups=1, bias=False, activation='leaky_relu', norm_type=None):
         kernel_size = _pair(kernel_size)
         stride = _pair(stride)
         padding = _pair(padding)

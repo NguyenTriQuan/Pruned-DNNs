@@ -210,10 +210,10 @@ class Appr(object):
                 images = train_transform(images)
                             
             self.train_batch(images, targets)
-        for m in self.model.layers:
-            if isinstance(m, _WeightNormLayer):
-                print(round(m.weight.norm(2).item(), 2), end=' ')
-        print()
+        # for m in self.model.layers:
+        #     if isinstance(m, _WeightNormLayer):
+        #         print(round(m.weight.norm(2).item(), 2), end=' ')
+        # print()
 
     def eval(self,data_loader, valid_transform):
         total_loss=0

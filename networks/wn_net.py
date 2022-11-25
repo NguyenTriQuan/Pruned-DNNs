@@ -35,7 +35,7 @@ class VGG(nn.Module):
         self.layers = make_layers(cfg, n_channels, mul=mul, batch_norm=batch_norm, bias=bias)
         self.smid = size
         for m in self.layers:
-            if isinstance(m, WeightNormConv2D) or isinstance(m, nn .MaxPool2d):
+            if isinstance(m, WeightNormConv2D) or isinstance(m, nn.MaxPool2d):
                 try:
                     self.smid = compute_conv_output_size(self.smid, m.kernel_size[0], m.stride[0], m.padding[0], m.dilation[0])
                 except:
@@ -63,10 +63,6 @@ class VGG(nn.Module):
         for m in self.layers[:-1]:
             if isinstance(m, _WeightNormLayer):
                 m.normalize()
-        
-    def compute_norm(self):
-        return
-
 
 def make_layers(cfg, n_channels, mul=1, batch_norm=False, bias=False):
     layers = []
