@@ -48,11 +48,11 @@ class VGG(nn.Module):
             # nn.Linear(int(4096*mul), output_size),
             WeightNormLinear(int(4096*mul), output_size, bias=True),
         ])
-        gain = torch.nn.init.calculate_gain('leaky_relu', args.negative_slope)
-        fan_in, fan_out = _calculate_fan_in_and_fan_out(self.layers[-1].weight)
-        bound = gain / math.sqrt(fan_in)
-        nn.init.normal_(self.layers[-1].weight, 0, bound)
-        nn.init.constant_(self.layers[-1].bias, 0)
+        # gain = torch.nn.init.calculate_gain('leaky_relu', args.negative_slope)
+        # fan_in, fan_out = _calculate_fan_in_and_fan_out(self.layers[-1].weight)
+        # bound = gain / math.sqrt(fan_in)
+        # nn.init.normal_(self.layers[-1].weight, 0, bound)
+        # nn.init.constant_(self.layers[-1].bias, 0)
 
     def forward(self, x):
         for m in self.layers:
