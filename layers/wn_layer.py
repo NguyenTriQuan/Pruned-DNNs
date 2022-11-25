@@ -68,16 +68,15 @@ class _WeightNormLayer(nn.Module):
         # gain = torch.nn.init.calculate_gain('leaky_relu', args.negative_slope)
         fan_in, fan_out = _calculate_fan_in_and_fan_out(self.weight)
         if self.activation == 'leaky_relu':
-            self.gain = math.sqrt(fan_out) / self.weight.numel()
+            self.gain = math.sqrt(fan_in/self.weight.numel())
             self.negative_slope = math.sqrt((2/(self.gain**2))-1)
             self.activation = nn.LeakyReLU(self.negative_slope, inplace=True)
-            self.negative_slope = 0
             print(self.gain, self.negative_slope)
         else:
             self.gain = 1
             self.activation = nn.Identity()
 
-        bound = self.gain / math.sqrt(fan_out)
+        bound = self.gain / math.sqrt(fan_in)
         nn.init.normal_(self.weight, 0, bound)
         if self.bias is not None:
             nn.init.constant_(self.bias, 0)
@@ -86,11 +85,11 @@ class _WeightNormLayer(nn.Module):
         # gain = torch.nn.init.calculate_gain('leaky_relu', self.activation.weight.data.item())
         # gain = torch.nn.init.calculate_gain('leaky_relu', args.negative_slope)
         fan_in, fan_out = _calculate_fan_in_and_fan_out(self.weight)
-        bound = self.gain / math.sqrt(fan_out)
-        mean = self.weight.mean().detach()
-        std = self.weight.std(unbiased=False).detach()
-        # mean = self.weight.mean(dim=self.norm_dim).detach().view(self.norm_view)
-        # std = self.weight.std(dim=self.norm_dim, unbiased=False).detach().view(self.norm_view)
+        bound = self.gain / math.sqrt(fan_in)
+        # mean = self.weight.mean().detach()
+        # std = self.weight.std(unbiased=False).detach()
+        mean = self.weight.mean(dim=self.norm_dim).detach().view(self.norm_view)
+        std = self.weight.std(dim=self.norm_dim, unbiased=False).detach().view(self.norm_view)
         self.weight.data = bound * (self.weight.data - mean) / std
 
 
