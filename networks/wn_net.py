@@ -43,10 +43,10 @@ class VGG(nn.Module):
 
         self.layers += nn.ModuleList([
             nn.Flatten(),
-            WeightNormLinear(int(512*self.smid*self.smid*mul), int(4096*mul), bias=bias, activation='prelu'),
-            WeightNormLinear(int(4096*mul), int(4096*mul), bias=bias, activation='prelu'),
+            WeightNormLinear(int(512*self.smid*self.smid*mul), int(4096*mul), bias=bias, activation='leaky_relu'),
+            WeightNormLinear(int(4096*mul), int(4096*mul), bias=bias, activation='leaky_relu'),
             # nn.Linear(int(4096*mul), output_size),
-            WeightNormLinear(int(4096*mul), output_size, bias=True),
+            WeightNormLinear(int(4096*mul), output_size, bias=True, activation='identity'),
         ])
         # gain = torch.nn.init.calculate_gain('leaky_relu', args.negative_slope)
         # fan_in, fan_out = _calculate_fan_in_and_fan_out(self.layers[-1].weight)
@@ -76,7 +76,7 @@ def make_layers(cfg, n_channels, mul=1, batch_norm=False, bias=False):
             layers += [nn.MaxPool2d(kernel_size=2, stride=2)]
         else:
             v = int(v*mul)
-            conv2d = WeightNormConv2D(in_channels, v, kernel_size=3, padding=1, bias=bias, activation='prelu', norm_type=batch_norm)
+            conv2d = WeightNormConv2D(in_channels, v, kernel_size=3, padding=1, bias=bias, activation='leaky_relu', norm_type=batch_norm)
             layers += [conv2d]
             in_channels = v
     return nn.ModuleList(layers)

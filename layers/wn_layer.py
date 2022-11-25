@@ -44,13 +44,19 @@ def _calculate_fan_in_and_fan_out(tensor):
 
 class _WeightNormLayer(nn.Module):
 
-    def __init__(self, in_features, out_features, bias=False, activation='prelu', norm_type=None):
+    def __init__(self, in_features, out_features, bias=False, activation='leaky_relu', norm_type=None):
         super(_WeightNormLayer, self).__init__()
         self.in_features = in_features
         self.out_features = out_features       
         self.bias = nn.Parameter(torch.Tensor(self.out_features).uniform_(0, 0).to(device)) if bias else None
         # self.activation = nn.PReLU(1, args.negative_slope, device=device)
-        self.activation = nn.LeakyReLU(args.negative_slope, inplace=True)
+        if activation =='leaky_relu':
+            self.activation = nn.LeakyReLU(args.negative_slope, inplace=True)
+            self.gain = torch.nn.init.calculate_gain('leaky_relu', args.negative_slope)
+        else:
+            self.activation = nn.Identity()
+            self.gain = 1
+
         if norm_type:
             self.norm_layer = nn.BatchNorm2d(out_features)
         else:
@@ -58,9 +64,9 @@ class _WeightNormLayer(nn.Module):
 
     def initialize(self):
         # gain = torch.nn.init.calculate_gain('leaky_relu', self.activation.weight.data.item())
-        gain = torch.nn.init.calculate_gain('leaky_relu', args.negative_slope)
+        # gain = torch.nn.init.calculate_gain('leaky_relu', args.negative_slope)
         fan_in, fan_out = _calculate_fan_in_and_fan_out(self.weight)
-        bound = gain / math.sqrt(fan_in)
+        bound = self.gain / math.sqrt(fan_in)
         nn.init.normal_(self.weight, 0, bound)
         if self.bias is not None:
             nn.init.constant_(self.bias, 0)
