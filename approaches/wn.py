@@ -16,6 +16,7 @@ import time
 import csv
 from utils import *
 import networks.wn_net as network
+from layers.wn_layer import _WeightNormLayer, WeightNormLinear, WeightNormConv2D
 import matplotlib.pyplot as plt
 import torchvision.transforms as transforms
 from sklearn.utils import shuffle
@@ -209,7 +210,10 @@ class Appr(object):
                 images = train_transform(images)
                             
             self.train_batch(images, targets)
-
+        for m in self.model.layers:
+            if isinstance(m, _WeightNormLayer):
+                print(round(m.weight.norm(2).item(), 2), end=' ')
+        print()
 
     def eval(self,data_loader, valid_transform):
         total_loss=0

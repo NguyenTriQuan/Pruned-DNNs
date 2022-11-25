@@ -92,6 +92,7 @@ cfg = {
             512, 512, 512, 512, 512, 512, 512, 512, 512, 'M', 512, 512, 512, 512, 512, 512, 512, 512, 512, 'M'],
     'F': [64, 64, 64, 64, 64 ,'M', 64, 64, 64, 64, 64, 'M', 128, 128, 128, 128, 128, 'M', 256, 256, 256, 256, 256, 256, 256, 256, 256, 256, 'M', 
             512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 'M'],
+    'G': [512, 'M', 512, 'M', 512, 512, 'M', 512, 512, 'M', 512, 512, 'M'],
 }
 
 
@@ -108,4 +109,4 @@ def VGG19(input_size,output_size,mul=1,batch_norm=False):
     return VGG(input_size,output_size, cfg['D'], batch_norm=batch_norm)
 
 def CustomVGG(input_size,output_size,mul=1,batch_norm=False):
-    return VGG(input_size,output_size, cfg['E'], batch_norm=batch_norm)
+    return VGG(input_size,output_size, cfg['G'], batch_norm=batch_norm)
