@@ -68,11 +68,10 @@ class _WeightNormLayer(nn.Module):
         # gain = torch.nn.init.calculate_gain('leaky_relu', args.negative_slope)
         fan_in, fan_out = _calculate_fan_in_and_fan_out(self.weight)
         if self.activation == 'leaky_relu':
-            # self.gain = torch.nn.init.calculate_gain('leaky_relu', args.negative_slope)
-            # self.negative_slope = args.negative_slope
-            self.gain = math.sqrt(fan_in/self.weight.numel())
+            self.gain = torch.nn.init.calculate_gain('leaky_relu', args.negative_slope)
+            self.negative_slope = args.negative_slope
+            # self.gain = math.sqrt(fan_in/self.weight.numel())
             # self.negative_slope = math.sqrt((2/(self.gain**2))-1)
-            self.negative_slope = 0
             self.activation = nn.LeakyReLU(self.negative_slope, inplace=True)
             print(self.gain, self.negative_slope)
         else:
