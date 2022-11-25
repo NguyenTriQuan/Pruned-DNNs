@@ -60,7 +60,7 @@ class VGG(nn.Module):
         return x
 
     def normalize(self):
-        for m in self.layers[:-1]:
+        for m in self.layers:
             if isinstance(m, _WeightNormLayer):
                 m.normalize()
 
