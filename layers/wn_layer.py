@@ -71,6 +71,7 @@ class _WeightNormLayer(nn.Module):
             self.gain = math.sqrt(fan_out) / self.weight.numel()
             self.negative_slope = math.sqrt((2/(self.gain**2))-1)
             self.activation = nn.LeakyReLU(self.negative_slope, inplace=True)
+            self.negative_slope = 0
             print(self.gain, self.negative_slope)
         else:
             self.gain = 1
