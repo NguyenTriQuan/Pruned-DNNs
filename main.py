@@ -78,8 +78,8 @@ if device == 'cuda':
 print('-' * 100)
 print(f'Train size = {train_loader.dataset.tensors[0].shape[0]} / Test size = {test_loader.dataset.tensors[0].shape[0]}')
 
-lip = naive_lip(appr.model, test_loader, valid_transform, n_iters=20000, batch_size=5000)
-print(f'Lipschitz = {lip}')
+# lip = naive_lip(appr.model, test_loader, valid_transform, n_iters=20000, batch_size=5000)
+# print(f'Lipschitz = {lip}')
 
 appr.train(train_loader, test_loader, train_transform, valid_transform)
 
