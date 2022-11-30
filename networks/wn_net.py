@@ -43,8 +43,8 @@ class VGG(nn.Module):
 
         self.layers += nn.ModuleList([
             nn.Flatten(),
-            WeightNormLinear(int(512*self.smid*self.smid*mul), int(4096*mul), bias=bias, activation='leaky_relu'),
-            WeightNormLinear(int(4096*mul), int(4096*mul), bias=bias, activation='leaky_relu'),
+            WeightNormLinear(int(512*self.smid*self.smid*mul), int(4096*mul), bias=bias, activation=args.activation),
+            WeightNormLinear(int(4096*mul), int(4096*mul), bias=bias, activation=args.activation),
             # nn.Linear(int(4096*mul), output_size),
             WeightNormLinear(int(4096*mul), output_size, bias=True, activation='identity'),
         ])
@@ -72,9 +72,10 @@ def make_layers(cfg, n_channels, mul=1, batch_norm=False, bias=False):
             layers += [nn.MaxPool2d(kernel_size=2, stride=2)]
         else:
             v = int(v*mul)
-            conv2d = WeightNormConv2D(in_channels, v, kernel_size=3, padding=1, bias=bias, activation='leaky_relu', norm_type=batch_norm)
-            layers += [conv2d]
-            in_channels = v
+            for i in range(1):
+                conv2d = WeightNormConv2D(in_channels, v, kernel_size=3, padding=1, bias=bias, activation=args.activation, norm_type=batch_norm)
+                layers += [conv2d]
+                in_channels = v
     return nn.ModuleList(layers)
 
 
@@ -88,7 +89,7 @@ cfg = {
             512, 512, 512, 512, 512, 512, 512, 512, 512, 'M', 512, 512, 512, 512, 512, 512, 512, 512, 512, 'M'],
     'F': [64, 64, 64, 64, 64 ,'M', 64, 64, 64, 64, 64, 'M', 128, 128, 128, 128, 128, 'M', 256, 256, 256, 256, 256, 256, 256, 256, 256, 256, 'M', 
             512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 'M'],
-    'G': [512, 'M', 512, 'M', 512, 512, 'M', 512, 512, 'M', 512, 512, 'M'],
+    'G': [64, 'M', 64, 64, 64, 64 ,'M', 64, 64, 64, 64,'M', 64, 64, 64, 64, 64 ,'M', 64, 64, 64, 64, 64 ,'M'],
 }
 
 

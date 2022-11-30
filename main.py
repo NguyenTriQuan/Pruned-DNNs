@@ -83,7 +83,6 @@ print(f'Lipschitz = {lip}')
 
 appr.train(train_loader, test_loader, train_transform, valid_transform)
 
-
 test_loss, test_acc = appr.eval(test_loader, valid_transform)
 print('>>> Test: loss={:.3f}, acc={:5.2f}% <<<'.format(test_loss, 100 * test_acc))
 
