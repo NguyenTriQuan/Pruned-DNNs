@@ -31,7 +31,7 @@ class Appr(object):
 
     def __init__(self, input_size, output_size, args):
         Net = getattr(network, args.arch)
-        self.model = Net(input_size=input_size, output_size=output_size, batch_norm=args.norm_type).to(device)
+        self.model = Net(input_size, output_size, args.norm_type).to(device)
         print(self.model)
         self.nepochs = args.nepochs
         self.batch_size = args.batch_size

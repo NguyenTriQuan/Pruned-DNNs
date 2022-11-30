@@ -32,7 +32,7 @@ class Appr(object):
 
     def __init__(self, input_size, output_size, args):
         Net = getattr(network, args.arch)
-        self.model = Net(input_size=input_size, output_size=output_size, batch_norm=args.norm_type).to(device)
+        self.model = Net(input_size=input_size, output_size=output_size, norm_type=args.norm_type).to(device)
         print(self.model)
         self.nepochs = args.nepochs
         self.batch_size = args.batch_size
@@ -210,10 +210,6 @@ class Appr(object):
                 images = train_transform(images)
                             
             self.train_batch(images, targets)
-        for m in self.model.layers:
-            if isinstance(m, _WeightNormLayer):
-                print(round(m.weight.norm(2).item(), 2), end=' ')
-        print()
 
     def eval(self,data_loader, valid_transform):
         total_loss=0
