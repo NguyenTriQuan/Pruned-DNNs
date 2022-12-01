@@ -104,8 +104,8 @@ class WeightNormLinear(_WeightNormLayer):
         self.norm_view = (-1, 1)
 
     def forward(self, x):  
-        x = F.linear(x, self.weight, self.bias)
-        return self.activation(x)
+        out = F.linear(x, self.weight, self.bias)
+        return self.activation(out)
             
         
 class _WeightNormConvNd(_WeightNormLayer):
@@ -142,8 +142,8 @@ class WeightNormConv2D(_WeightNormConvNd):
         self.norm_view = (-1, 1, 1, 1)
 
     def forward(self, x): 
-        x = F.conv2d(x, self.weight, self.bias, self.stride, self.padding, self.dilation, self.groups)
+        out = F.conv2d(x, self.weight, self.bias, self.stride, self.padding, self.dilation, self.groups)
         if self.norm_layer:
-            x = self.norm_layer(x)
-        return self.activation(x)
+            out = self.norm_layer(out)
+        return self.activation(out)
 
