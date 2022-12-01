@@ -173,6 +173,7 @@ class BasicBlock(nn.Module):
         self.stride = stride
 
     def forward(self, x):
+        identity = x
         out = self.conv1(x)
         out = self.bn1(out)
         out = self.relu(out)
@@ -183,9 +184,6 @@ class BasicBlock(nn.Module):
         if args.res:
             if self.downsample is not None:
                 identity = self.downsample(x)
-            else:
-                identity = x
-
             out += identity
         out = self.relu(out)
 
@@ -226,6 +224,7 @@ class Bottleneck(nn.Module):
         self.stride = stride
 
     def forward(self, x):
+        identity = x
         out = self.conv1(x)
         out = self.bn1(out)
         out = self.relu(out)
@@ -239,9 +238,7 @@ class Bottleneck(nn.Module):
 
         if args.res:
             if self.downsample is not None:
-                identity = self.downsample(x)
-            else:
-                identity = x
+                identity = self.downsample(x)                
             out += identity
 
         out = self.relu(out)
