@@ -14,6 +14,7 @@ import random
 import json
 import torch.backends.cudnn as cudnn
 
+torch.autograd.set_detect_anomaly(True)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 os.makedirs('../result_data/trained_model/', exist_ok=True)
 os.makedirs('../result_data/logger/', exist_ok=True)
