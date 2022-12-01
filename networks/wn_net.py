@@ -242,7 +242,7 @@ class ResNet(nn.Module):
             )
         self.groups = groups
         self.base_width = width_per_group
-        self.conv1 = WeightNormConv2D(3, self.inplanes, kernel_size=3, stride=1, padding=1, bias=False, norm_type=norm_type, activation=args.activation)
+        self.conv1 = WeightNormConv2D(3, self.inplanes, kernel_size=7, stride=2, padding=3, bias=False, norm_type=norm_type, activation=args.activation)
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
         self.layer1 = self._make_layer(block, 64, layers[0])
         self.layer2 = self._make_layer(block, 128, layers[1], stride=2, dilate=replace_stride_with_dilation[0])
@@ -308,15 +308,14 @@ class ResNet(nn.Module):
 
     def forward(self, x):
         x = self.conv1(x)
-        # x = self.maxpool(x)
+        x = self.maxpool(x)
 
         x = self.layer1(x)
         x = self.layer2(x)
         x = self.layer3(x)
         x = self.layer4(x)
 
-        # x = self.avgpool(x)
-        out = F.avg_pool2d(out, 4)
+        x = self.avgpool(x)
         x = torch.flatten(x, 1)
         x = self.fc(x)
 

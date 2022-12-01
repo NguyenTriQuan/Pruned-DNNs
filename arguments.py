@@ -112,6 +112,7 @@ def get_args():
     parser.add_argument('--prune_method', type=str, default='pgd', help='(default=%(default)s)')
     parser.add_argument('--train_size', default=1.0, type=float, required=False, help='(default=%(default)s)')
     parser.add_argument('--activation', type=str, default='relu', help='(default=%(default)s)')
+    parser.add_argument('--fan_mode', type=str, default='fan_in', help='(default=%(default)s)')
     parser.add_argument('--negative_slope', default=math.sqrt(5), type=float, required=False, help='(default=%(default)s)')
     parser.add_argument('--bias', default=False, action='store_true', help='(default=%(default)s)')
     parser.add_argument('--res', default=False, action='store_true', help='(default=%(default)s)')
