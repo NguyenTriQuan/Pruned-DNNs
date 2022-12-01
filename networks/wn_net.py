@@ -156,7 +156,7 @@ class BasicBlock(nn.Module):
         self.stride = stride
 
     def forward(self, x):
-        identity = x.clone()
+        identity = x
         out = self.conv1(x)
         out = self.conv2(out)
 
