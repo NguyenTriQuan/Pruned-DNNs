@@ -59,7 +59,7 @@ class _WeightNormLayer(nn.Module):
         self.activation = activation
 
         if norm_type:
-            self.norm_layer = nn.BatchNorm2d(out_features)
+            self.norm_layer = nn.BatchNorm2d(out_features, track_running_stats=False)
         else:
             self.norm_layer = None
 
