@@ -248,7 +248,7 @@ class ResNet(nn.Module):
         self.layer4 = self._make_layer(block, 512, layers[3], stride=2, dilate=replace_stride_with_dilation[2])
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = WeightNormLinear(512 * block.expansion, output_size, bias=True, activation=args.activation)
-
+        self.WN = [m for m in self.modules() if isinstance(m, _WeightNormLayer)]
         # Zero-initialize the last BN in each residual branch,
         # so that the residual branch starts with zeros, and each residual block behaves like an identity.
         # This improves the model by 0.2~0.3% according to https://arxiv.org/abs/1706.02677
@@ -300,9 +300,8 @@ class ResNet(nn.Module):
         return nn.Sequential(*layers)
 
     def normalize(self):
-        for m in self.modules():
-            if isinstance(m, _WeightNormLayer):
-                m.normalize()
+        for m in self.WN[:-1]:
+            m.normalize()
 
     def forward(self, x):
         x = self.conv1(x)
