@@ -210,6 +210,9 @@ class Appr(object):
                 images = train_transform(images)
                             
             self.train_batch(images, targets)
+        for m in self.model.modules():
+            print(m.weight.norm(2).item(), end=' ')
+        print()
 
     def eval(self,data_loader, valid_transform):
         total_loss=0
