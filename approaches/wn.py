@@ -212,7 +212,7 @@ class Appr(object):
             self.train_batch(images, targets)
         for m in self.model.modules():
             if isinstance(m, _WeightNormLayer):
-                print(m.weight.norm(2).item(), end=' ')
+                print(round(m.weight.norm(2).item(), 2), end=' ')
         print()
 
     def eval(self,data_loader, valid_transform):

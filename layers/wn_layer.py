@@ -72,6 +72,7 @@ class _WeightNormLayer(nn.Module):
         else:
             self.gain = 1
             self.activation = nn.Identity()
+            print(self.gain)
 
         fan_mode = fan_in if args.fan_mode == 'fan_in' else fan_out
         self.bound = self.gain / math.sqrt(fan_mode)
