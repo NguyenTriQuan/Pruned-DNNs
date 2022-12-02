@@ -60,10 +60,10 @@ class _WeightNormLayer(nn.Module):
         
         fan_in, fan_out = _calculate_fan_in_and_fan_out(self.weight)
         if self.activation == 'leaky_relu':
-            # self.gain = torch.nn.init.calculate_gain('leaky_relu', args.negative_slope)
-            # self.negative_slope = args.negative_slope
-            self.gain = math.sqrt(fan_in/self.weight.numel())
-            self.negative_slope = math.sqrt((2/(self.gain**2))-1)
+            self.gain = torch.nn.init.calculate_gain('leaky_relu', args.negative_slope)
+            self.negative_slope = args.negative_slope
+            # self.gain = math.sqrt(fan_in/self.weight.numel())
+            # self.negative_slope = math.sqrt((2/(self.gain**2))-1)
             self.activation = nn.LeakyReLU(self.negative_slope, inplace=False)
             print(self.gain, self.negative_slope)
         elif self.activation == 'sigmoid':
@@ -96,8 +96,8 @@ class WeightNormLinear(_WeightNormLayer):
         self.norm_view = (-1, 1)
 
     def forward(self, x):  
+        out = self.activation(x)
         out = F.linear(x, self.weight, self.bias)
-        out = self.activation(out)
         return out
             
         
@@ -135,8 +135,8 @@ class WeightNormConv2D(_WeightNormConvNd):
         self.norm_view = (-1, 1, 1, 1)
 
     def forward(self, x): 
+        out = self.activation(x)
         out = F.conv2d(x, self.weight, self.bias, self.stride, self.padding, self.dilation, self.groups)
-        out = self.activation(out)
         if self.norm_layer:
             out = self.norm_layer(out)
         return out
