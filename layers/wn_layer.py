@@ -70,7 +70,7 @@ class _WeightNormLayer(nn.Module):
             self.gain = torch.nn.init.calculate_gain('sigmoid', args.negative_slope)
             self.activation = nn.Sigmoid()
         else:
-            self.gain = 1
+            self.gain = args.gain
             self.activation = nn.Identity()
             print(self.gain)
 
