@@ -305,6 +305,7 @@ class ResNet(nn.Module):
             m.normalize()
     
     def initialize(self):
+        print('initialize')
         for m in self.WN[:-1]:
             m.initialize()
 
