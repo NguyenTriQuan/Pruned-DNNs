@@ -116,7 +116,7 @@ def get_args():
     parser.add_argument('--negative_slope', default=math.sqrt(5), type=float, required=False, help='(default=%(default)s)')
     parser.add_argument('--bias', default=False, action='store_true', help='(default=%(default)s)')
     parser.add_argument('--res', default=False, action='store_true', help='(default=%(default)s)')
-    parser.add_argument('--gain', default=1, type=float, required=False, help='(default=%(default)s)')
+    parser.add_argument('--gain', default=math.sqrt(2), type=float, required=False, help='(default=%(default)s)')
     
 
     args=parser.parse_args()

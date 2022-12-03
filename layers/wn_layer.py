@@ -70,8 +70,17 @@ class _WeightNormLayer(nn.Module):
         else:
             self.norm_layer = None
 
-    def initialize(self):
-        
+    def default_initialize(self):  
+        fan_in, fan_out = _calculate_fan_in_and_fan_out(self.weight)
+        fan_mode = fan_in if args.fan_mode == 'fan_in' else fan_out
+        # gain = torch.nn.init.calculate_gain('leaky_relu', a=math.sqrt(5))
+        gain = args.gain
+        bound = gain / math.sqrt(fan_mode)
+        nn.init.normal_(self.weight, 0, bound)
+        if self.bias is not None:
+            nn.init.constant_(self.bias, 0)
+
+    def initialize(self):  
         fan_in, fan_out = _calculate_fan_in_and_fan_out(self.weight)
         fan_mode = fan_in if args.fan_mode == 'fan_in' else fan_out
         self.bound = self.gain / math.sqrt(fan_mode)
@@ -92,6 +101,7 @@ class WeightNormLinear(_WeightNormLayer):
 
         self.weight = nn.Parameter(torch.Tensor(self.out_features, self.in_features).to(device))
         # self.initialize()
+        self.default_initialize()
         self.norm_dim = (1)
         self.norm_view = (-1, 1)
 
@@ -131,6 +141,7 @@ class WeightNormConv2D(_WeightNormConvNd):
 
         self.weight = nn.Parameter(torch.Tensor(self.out_features, self.in_features // self.groups, *self.kernel_size).to(device))
         # self.initialize()
+        self.default_initialize()
         self.norm_dim = (1, 2, 3)
         self.norm_view = (-1, 1, 1, 1)
 
