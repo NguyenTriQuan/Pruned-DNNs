@@ -301,11 +301,11 @@ class ResNet(nn.Module):
         return nn.Sequential(*layers)
 
     def normalize(self):
-        for m in self.WN[:-1]:
+        for m in self.WN:
             m.normalize()
     
     def initialize(self):
-        for m in self.WN[:-1]:
+        for m in self.WN:
             m.initialize()
 
     def forward(self, x):
