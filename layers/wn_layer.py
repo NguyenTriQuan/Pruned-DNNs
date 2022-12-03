@@ -60,9 +60,9 @@ class _WeightNormLayer(nn.Module):
             self.gain = torch.nn.init.calculate_gain('sigmoid')
             self.activation = nn.Sigmoid()
         else:
-            # self.gain = args.gain
+            self.gain = args.gain
             # self.gain = torch.nn.init.calculate_gain('leaky_relu', args.negative_slope)
-            self.gain = 1
+            # self.gain = 1
             self.activation = nn.Identity()
             # print(self.gain)
 
@@ -109,9 +109,8 @@ class WeightNormLinear(_WeightNormLayer):
         self.norm_view = (-1, 1)
 
     def forward(self, x):  
-        # out = self.activation(x)
-        out = F.linear(x, self.weight, self.bias)
         out = self.activation(x)
+        out = F.linear(out, self.weight, self.bias)
         return out
             
         
@@ -150,10 +149,9 @@ class WeightNormConv2D(_WeightNormConvNd):
         self.norm_view = (-1, 1, 1, 1)
 
     def forward(self, x): 
-        # out = self.activation(x)
-        out = F.conv2d(x, self.weight, self.bias, self.stride, self.padding, self.dilation, self.groups)
+        out = self.activation(x)
+        out = F.conv2d(out, self.weight, self.bias, self.stride, self.padding, self.dilation, self.groups)
         if self.norm_layer:
             out = self.norm_layer(out)
-        out = self.activation(x)
         return out
 
