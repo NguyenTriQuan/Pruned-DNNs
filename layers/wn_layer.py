@@ -61,8 +61,8 @@ class _WeightNormLayer(nn.Module):
             self.activation = nn.Sigmoid()
         else:
             self.gain = args.gain
-            # self.gain = torch.nn.init.calculate_gain('leaky_relu', args.negative_slope)
-            self.activation = nn.Identity()
+            self.gain = torch.nn.init.calculate_gain('leaky_relu', args.negative_slope)
+            # self.activation = nn.Identity()
             print(self.gain)
 
         if norm_type:
