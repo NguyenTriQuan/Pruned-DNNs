@@ -93,7 +93,7 @@ class WeightNormLinear(_WeightNormLayer):
         super(WeightNormLinear, self).__init__(in_features, out_features, bias, activation, norm_type)
 
         self.weight = nn.Parameter(torch.Tensor(self.out_features, self.in_features).to(device))
-        self.initialize()
+        # self.initialize()
         self.norm_dim = (1)
         self.norm_view = (-1, 1)
 
@@ -132,7 +132,7 @@ class WeightNormConv2D(_WeightNormConvNd):
                                             stride, padding, dilation, False, _pair(0), groups, bias, activation, norm_type)
 
         self.weight = nn.Parameter(torch.Tensor(self.out_features, self.in_features // self.groups, *self.kernel_size).to(device))
-        self.initialize()
+        # self.initialize()
         self.norm_dim = (1, 2, 3)
         self.norm_view = (-1, 1, 1, 1)
 
