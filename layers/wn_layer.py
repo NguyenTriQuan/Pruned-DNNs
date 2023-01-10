@@ -55,38 +55,23 @@ class _WeightNormLayer(nn.Module):
             # self.gain = math.sqrt(fan_in/self.weight.numel())
             # self.negative_slope = math.sqrt((2/(self.gain**2))-1)
             self.activation = nn.LeakyReLU(self.negative_slope, inplace=False)
-            # print(self.gain, self.negative_slope)
         elif activation == 'sigmoid':
             self.gain = torch.nn.init.calculate_gain('sigmoid')
             self.activation = nn.Sigmoid()
         else:
             self.gain = args.gain
-            # self.gain = torch.nn.init.calculate_gain('leaky_relu', args.negative_slope)
             # self.gain = 1
             self.activation = nn.Identity()
-            # print(self.gain)
 
         if norm_type:
             self.norm_layer = nn.BatchNorm2d(out_features, track_running_stats=False)
         else:
             self.norm_layer = None
 
-    def default_initialize(self):  
-        fan_in, fan_out = _calculate_fan_in_and_fan_out(self.weight)
-        fan_mode = fan_in if args.fan_mode == 'fan_in' else fan_out
-        # gain = torch.nn.init.calculate_gain('leaky_relu', a=math.sqrt(5))
-        gain = args.gain
-        bound = gain / math.sqrt(fan_mode)
-        print(bound)
-        nn.init.normal_(self.weight, 0, bound)
-        if self.bias is not None:
-            nn.init.constant_(self.bias, 0)
-
     def initialize(self):  
         fan_in, fan_out = _calculate_fan_in_and_fan_out(self.weight)
         fan_mode = fan_in if args.fan_mode == 'fan_in' else fan_out
         self.bound = self.gain / math.sqrt(fan_mode)
-        print(self.bound)
         nn.init.normal_(self.weight, 0, self.bound)
         if self.bias is not None:
             nn.init.constant_(self.bias, 0)
@@ -103,8 +88,7 @@ class WeightNormLinear(_WeightNormLayer):
         super(WeightNormLinear, self).__init__(in_features, out_features, bias, activation, norm_type)
 
         self.weight = nn.Parameter(torch.Tensor(self.out_features, self.in_features).to(device))
-        # self.initialize()
-        self.default_initialize()
+        self.initialize()
         self.norm_dim = (1)
         self.norm_view = (-1, 1)
 
@@ -143,8 +127,7 @@ class WeightNormConv2D(_WeightNormConvNd):
                                             stride, padding, dilation, False, _pair(0), groups, bias, activation, norm_type)
 
         self.weight = nn.Parameter(torch.Tensor(self.out_features, self.in_features // self.groups, *self.kernel_size).to(device))
-        # self.initialize()
-        self.default_initialize()
+        self.initialize()
         self.norm_dim = (1, 2, 3)
         self.norm_view = (-1, 1, 1, 1)
 
