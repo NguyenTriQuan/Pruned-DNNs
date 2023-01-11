@@ -52,6 +52,7 @@ class Appr(object):
         self.seed = args.seed
         self.norm_type = args.norm_type
         self.ablation = args.ablation
+        self.train_size = args.train_size
         self.logger = None
         self.thres = args.thres
         self.prune_method = args.prune_method
@@ -66,9 +67,9 @@ class Appr(object):
         self.best_path = []
 
     def get_name(self):
-        self.log_name = '{}_{}_{}_{}_{}_{}_lr_{}_batch_{}_epoch_{}_optim_{}'.format(
+        self.log_name = '{}_{}_{}_{}_{}_{}_lr_{}_batch_{}_epoch_{}_optim_{}_train_{}'.format(
                                         self.experiment, self.approach, self.ablation, self.arch, self.args.norm_type, 
-                                        self.seed, self.lr, self.batch_size, self.nepochs, self.optim)
+                                        self.seed, self.lr, self.batch_size, self.nepochs, self.optim, self.train_size)
         
     def resume(self):
         try:
