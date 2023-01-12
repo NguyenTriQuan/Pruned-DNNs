@@ -80,7 +80,7 @@ class _WeightNormLayer(nn.Module):
     def normalize(self):
         mean = self.weight.mean(dim=self.norm_dim).detach().view(self.norm_view)
         std = self.weight.std(dim=self.norm_dim, unbiased=False).detach().view(self.norm_view)
-        self.weight.data = self.bound * (self.weight.data) / std
+        self.weight.data = self.bound * (self.weight.data - mean) / std
 
 
 class WeightNormLinear(_WeightNormLayer):
