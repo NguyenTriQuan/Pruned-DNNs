@@ -54,8 +54,8 @@ class _WeightNormLayer(nn.Module):
             self.negative_slope = args.negative_slope
             # self.gain = math.sqrt(fan_in/self.weight.numel())
             # self.negative_slope = math.sqrt((2/(self.gain**2))-1)
-            # self.activation = nn.LeakyReLU(self.negative_slope, inplace=False)
-            self.activation = nn.PReLU(self.in_features, self.negative_slope)
+            self.activation = nn.LeakyReLU(self.negative_slope, inplace=False)
+            # self.activation = nn.PReLU(self.in_features, self.negative_slope)
             # self.activation.weight.requires_grad = False
         elif activation == 'sigmoid':
             self.gain = torch.nn.init.calculate_gain('sigmoid')
