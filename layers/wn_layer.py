@@ -71,16 +71,21 @@ class _WeightNormLayer(nn.Module):
 
     def initialize(self):  
         fan_in, fan_out = _calculate_fan_in_and_fan_out(self.weight)
-        fan_mode = fan_in if args.fan_mode == 'fan_in' else fan_out
-        self.bound = self.gain / math.sqrt(fan_mode)
+        self.bound = self.gain / math.sqrt(fan_in)
         nn.init.normal_(self.weight, 0, self.bound)
         if self.bias is not None:
             nn.init.constant_(self.bias, 0)
     
     def normalize(self):
-        mean = self.weight.mean(dim=self.norm_dim).detach().view(self.norm_view)
-        std = self.weight.std(dim=self.norm_dim, unbiased=False).detach().view(self.norm_view)
-        self.weight.data = self.bound * (self.weight.data - mean) / std
+        with torch.no_grad():
+            mean = self.weight.mean(dim=self.norm_dim).detach().view(self.norm_view)
+            # std = self.weight.std(dim=self.norm_dim, unbiased=False).detach().view(self.norm_view)
+            # self.weight.data = self.bound * (self.weight.data - mean) / std
+
+            std = self.weight.std(dim=self.norm_dim, unbiased=False).detach().sum() * self.out_features
+            self.weight.data = self.bound * (self.weight.data - mean) / std
+
+            # std = self.weight.std(dim=self.norm_dim, unbiased=False).detach()
 
 
 class WeightNormLinear(_WeightNormLayer):
