@@ -79,12 +79,12 @@ class _WeightNormLayer(nn.Module):
     def normalize(self):
         with torch.no_grad():
             mean = self.weight.mean(dim=self.norm_dim).detach().view(self.norm_view)
-            # std = self.weight.std(dim=self.norm_dim, unbiased=False).detach().view(self.norm_view)
-            # self.weight.data = self.bound * (self.weight.data - mean) / std
-
-            var = self.weight.var(dim=self.norm_dim, unbiased=False).detach().mean() #/ self.weight.shape[0]
-            std = var ** 0.5
+            std = self.weight.std(dim=self.norm_dim, unbiased=False).detach().view(self.norm_view)
             self.weight.data = self.bound * (self.weight.data - mean) / std
+
+            # var = self.weight.var(dim=self.norm_dim, unbiased=False).detach().mean() #/ self.weight.shape[0]
+            # std = var ** 0.5
+            # self.weight.data = self.bound * (self.weight.data - mean) / std
 
             # std = self.weight.std(dim=self.norm_dim, unbiased=False).detach()
 
