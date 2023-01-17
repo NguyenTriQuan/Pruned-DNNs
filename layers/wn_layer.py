@@ -82,7 +82,7 @@ class _WeightNormLayer(nn.Module):
             # std = self.weight.std(dim=self.norm_dim, unbiased=False).detach().view(self.norm_view)
             # self.weight.data = self.bound * (self.weight.data - mean) / std
 
-            var = self.weight.var(dim=self.norm_dim, unbiased=False).detach().sum() / self.weight.shape[0]
+            var = self.weight.var(dim=self.norm_dim, unbiased=False).detach().sum() #/ self.weight.shape[0]
             std = var ** 0.5
             self.weight.data = self.bound * (self.weight.data - mean) / std
 
