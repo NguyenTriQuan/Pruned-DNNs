@@ -71,7 +71,7 @@ class _WeightNormLayer(nn.Module):
 
     def initialize(self):  
         fan_in, fan_out = _calculate_fan_in_and_fan_out(self.weight)
-        self.bound = self.gain / math.sqrt(fan_out)
+        self.bound = self.gain / math.sqrt(fan_in)
         nn.init.normal_(self.weight, 0, self.bound)
         if self.bias is not None:
             nn.init.constant_(self.bias, 0)
