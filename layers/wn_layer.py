@@ -71,7 +71,7 @@ class _WeightNormLayer(nn.Module):
 
     def initialize(self):  
         fan_in, fan_out = _calculate_fan_in_and_fan_out(self.weight)
-        self.bound = self.gain / math.sqrt(fan_in)
+        self.bound = self.gain / math.sqrt(fan_out)
         nn.init.normal_(self.weight, 0, self.bound)
         if self.bias is not None:
             nn.init.constant_(self.bias, 0)
@@ -79,14 +79,14 @@ class _WeightNormLayer(nn.Module):
     def normalize(self):
         with torch.no_grad():
             mean = self.weight.mean(dim=self.norm_dim).detach().view(self.norm_view)
-            std = self.weight.std(dim=self.norm_dim, unbiased=False).detach().view(self.norm_view)
-            self.weight.data = self.bound * (self.weight.data - mean) / std
-
-            # var = self.weight.var(dim=self.norm_dim, unbiased=False).detach().mean() #/ self.weight.shape[0]
-            # std = var ** 0.5
+            # std = self.weight.std(dim=self.norm_dim, unbiased=False).detach().view(self.norm_view)
             # self.weight.data = self.bound * (self.weight.data - mean) / std
 
-            # std = self.weight.std(dim=self.norm_dim, unbiased=False).detach()
+            var = self.weight.var(dim=self.norm_dim, unbiased=False).detach().sum() * self.ks
+            std = var ** 0.5
+            self.weight.data = self.bound * (self.weight.data - mean) / std
+
+            std = self.weight.std(dim=self.norm_dim, unbiased=False).detach()
 
 
 class WeightNormLinear(_WeightNormLayer):
@@ -98,6 +98,7 @@ class WeightNormLinear(_WeightNormLayer):
         self.initialize()
         self.norm_dim = (1)
         self.norm_view = (-1, 1)
+        self.ks = 1
 
     def forward(self, x):  
         out = self.activation(x)
@@ -137,6 +138,7 @@ class WeightNormConv2D(_WeightNormConvNd):
         self.initialize()
         self.norm_dim = (1, 2, 3)
         self.norm_view = (-1, 1, 1, 1)
+        self.ks = np.prod(self.kernel_size)
 
     def forward(self, x): 
         out = self.activation(x)
