@@ -251,8 +251,8 @@ class ResNet(nn.Module):
         self.WN = [m for m in self.modules() if isinstance(m, _WeightNormLayer)]
         self.initialize()
 
-        for i, m in enumerate(self.DM[:-1]):
-            self.DM[i].next_ks = self.DM[i+1].ks
+        for i, m in enumerate(self.WN[:-1]):
+            self.WN[i].next_ks = self.WN[i+1].ks
         # Zero-initialize the last BN in each residual branch,
         # so that the residual branch starts with zeros, and each residual block behaves like an identity.
         # This improves the model by 0.2~0.3% according to https://arxiv.org/abs/1706.02677
