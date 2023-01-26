@@ -68,10 +68,13 @@ class _WeightNormLayer(nn.Module):
             self.norm_layer = nn.BatchNorm2d(out_features, track_running_stats=False)
         else:
             self.norm_layer = None
+        
+        self.next_ks = 1
 
     def initialize(self):  
         fan_in, fan_out = _calculate_fan_in_and_fan_out(self.weight)
-        self.bound = self.gain / math.sqrt(fan_out)
+        fan = self.out_features * self.next_ks
+        self.bound = self.gain / math.sqrt(fan)
         nn.init.normal_(self.weight, 0, self.bound)
         if self.bias is not None:
             nn.init.constant_(self.bias, 0)
@@ -82,7 +85,7 @@ class _WeightNormLayer(nn.Module):
             # std = self.weight.std(dim=self.norm_dim, unbiased=False).detach().view(self.norm_view)
             # self.weight.data = self.bound * (self.weight.data - mean) / std
 
-            var = self.weight.var(dim=self.norm_dim, unbiased=False).detach().sum() * self.ks
+            var = self.weight.var(dim=self.norm_dim, unbiased=False).detach().sum() * self.next_ks
             std = var ** 0.5
             self.weight.data = self.gain * (self.weight.data - mean) / std
 

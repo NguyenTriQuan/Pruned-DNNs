@@ -250,6 +250,9 @@ class ResNet(nn.Module):
         self.fc = WeightNormLinear(512 * block.expansion, output_size, bias=True, activation=args.activation)
         self.WN = [m for m in self.modules() if isinstance(m, _WeightNormLayer)]
         self.initialize()
+
+        for i, m in enumerate(self.DM[:-1]):
+            self.DM[i].next_ks = self.DM[i+1].ks
         # Zero-initialize the last BN in each residual branch,
         # so that the residual branch starts with zeros, and each residual block behaves like an identity.
         # This improves the model by 0.2~0.3% according to https://arxiv.org/abs/1706.02677
@@ -274,7 +277,7 @@ class ResNet(nn.Module):
         if dilate:
             self.dilation *= stride
             stride = 1
-        if stride != 1 or self.inplanes != planes * block.expansion:
+        if stride != 1 or self.inplanes != planes * block.expansion or args.res:
             downsample = nn.Sequential(
                 conv1x1(self.inplanes, planes * block.expansion, stride, norm_type=norm_type),
             )
@@ -301,7 +304,7 @@ class ResNet(nn.Module):
         return nn.Sequential(*layers)
 
     def normalize(self):
-        for m in self.WN[:-1]:
+        for m in self.WN:
             m.normalize()
     
     def initialize(self):
