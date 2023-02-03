@@ -24,6 +24,24 @@ from itertools import cycle
 # feature_extractor = nn.Sequential(*list(resnet_model.children())[:-4])
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+def apply_mask_out(param, mask_out, optim_state):
+    param.data = param.data[mask_out].clone()
+    param.grad = None
+    param_states = optim_state[param]
+    for name, state in param_states.items():
+        if isinstance(state, torch.Tensor):
+            if len(state.shape) > 0:
+                param_states[name] = state[mask_out].clone()
+
+def apply_mask_in(param, mask_in, optim_state):
+    param.data = param.data[:, mask_in].clone()
+    param.grad = None
+    param_states = optim_state[param]
+    for name, state in param_states.items():
+        if isinstance(state, torch.Tensor):
+            if len(state.shape) > 0:
+                param_states[name] = state[:, mask_in].clone()
+
 def _calculate_fan_in_and_fan_out(tensor):
     dimensions = tensor.dim()
     if dimensions < 2:
