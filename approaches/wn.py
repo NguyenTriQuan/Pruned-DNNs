@@ -111,6 +111,8 @@ class Appr(object):
         var = train_loader.dataset.tensors[0].var(dim=(0, 2, 3))
         next_ks = self.model.WN[0].ks
         self.std = (var.sum() * next_ks) ** 0.5
+        self.mean = self.mean.to(device)
+        self.std = self.std.to(device)
 
         # train_transform = torch.nn.Sequential(
         #     K.augmentation.Normalize(mean, std),
