@@ -307,7 +307,7 @@ class ResNet(nn.Module):
         return nn.Sequential(*layers)
 
     def normalize(self):
-        for m in self.WN[:-1]:
+        for m in self.WN:
             m.normalize()
     
     def initialize(self):
