@@ -107,17 +107,17 @@ class Appr(object):
             print('Continue training')
 
         self.model = self.model.to(device)
-        mean = train_loader.dataset.tensors[0].mean(dim=(0, 2, 3))
+        self.mean = train_loader.dataset.tensors[0].mean(dim=(0, 2, 3))
         var = train_loader.dataset.tensors[0].var(dim=(0, 2, 3))
         next_ks = self.model.WN[0].ks
-        std = (var.sum() * next_ks) ** 0.5
+        self.std = (var.sum() * next_ks) ** 0.5
 
-        train_transform = torch.nn.Sequential(
-            K.augmentation.Normalize(mean, std),
-        )
-        valid_transform = torch.nn.Sequential(
-            K.augmentation.Normalize(mean, std),
-        )
+        # train_transform = torch.nn.Sequential(
+        #     K.augmentation.Normalize(mean, std),
+        # )
+        # valid_transform = torch.nn.Sequential(
+        #     K.augmentation.Normalize(mean, std),
+        # )
         print(self.log_name)
 
         count = 0
@@ -218,8 +218,9 @@ class Appr(object):
         for images, targets in data_loader:
             images=images.to(device)
             targets=targets.to(device)
-            if train_transform:
-                images = train_transform(images)
+            # if train_transform:
+            #     images = train_transform(images)
+            images = (images - self.mean.view(1, -1, 1, 1)) / self.std
                             
             self.train_batch(images, targets)
         s_H = 1
@@ -237,8 +238,9 @@ class Appr(object):
         for images, targets in data_loader:
             images=images.to(device)
             targets=targets.to(device)
-            if valid_transform:
-                images = valid_transform(images)
+            images = (images - self.mean.view(1, -1, 1, 1)) / self.std
+            # if valid_transform:
+            #     images = valid_transform(images)
                     
             loss, hits = self.eval_batch(images, targets)
             total_loss += loss
