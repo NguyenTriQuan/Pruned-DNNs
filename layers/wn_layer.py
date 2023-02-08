@@ -87,10 +87,7 @@ class _WeightNormLayer(nn.Module):
 
             var = self.weight.var(dim=self.norm_dim, unbiased=False).detach().sum() * self.next_ks
             std = var ** 0.5
-            self.weight.data = self.gain * (self.weight.data - mean) / std
-
-            std = self.weight.std(dim=self.norm_dim, unbiased=False).detach()
-        
+            self.weight.data = self.gain * (self.weight.data - mean) / std        
 
 class WeightNormLinear(_WeightNormLayer):
 

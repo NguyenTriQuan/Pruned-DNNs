@@ -107,6 +107,17 @@ class Appr(object):
             print('Continue training')
 
         self.model = self.model.to(device)
+        mean = train_loader.dataset.tensors[0].mean(dim=(0, 2, 3))
+        var = train_loader.dataset.tensors[0].var(dim=(0, 2, 3))
+        next_ks = self.model.WN[0].ks
+        std = (var.sum() * next_ks) ** 0.5
+
+        train_transform = torch.nn.Sequential(
+            K.augmentation.Normalize(mean, std),
+        )
+        valid_transform = torch.nn.Sequential(
+            K.augmentation.Normalize(mean, std),
+        )
         print(self.log_name)
 
         count = 0
