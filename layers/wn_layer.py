@@ -167,7 +167,7 @@ class WeightNormConv2D(_WeightNormConvNd):
 
     def forward(self, x): 
         mask = GetSubnet.apply(self.score.abs(), args.sparsity)
-        weight = self.weight * mask / args.sparsity
+        weight = self.weight * mask
         out = F.conv2d(x, weight, self.bias, self.stride, self.padding, self.dilation, self.groups)
         if self.norm_layer:
             out = self.norm_layer(out)
