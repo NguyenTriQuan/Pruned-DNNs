@@ -54,15 +54,25 @@ class VGG(nn.Module):
         # nn.init.normal_(self.layers[-1].weight, 0, bound)
         # nn.init.constant_(self.layers[-1].bias, 0)
 
+        for i, m in enumerate(self.WN[:-1]):
+            self.WN[i].next_ks = self.WN[i+1].ks
+            print(self.WN[i].next_ks)
+        
+        self.initialize()
+
     def forward(self, x):
         for m in self.layers:
             x = m(x)
         return x
 
     def normalize(self):
-        for m in self.layers:
-            if isinstance(m, _WeightNormLayer):
-                m.normalize()
+        for m in self.WN:
+            m.normalize()
+    
+    def initialize(self):
+        print('initialize')
+        for m in self.WN:
+            m.initialize()
 
 def make_layers(cfg, n_channels, mul=1, batch_norm=False, bias=False):
     layers = []
