@@ -99,6 +99,7 @@ class _WeightNormLayer(nn.Module):
         nn.init.normal_(self.score, 0, self.bound)
         if self.bias is not None:
             nn.init.constant_(self.bias, 0)
+        self.mask = GetSubnet.apply(self.score.abs(), args.sparsity).detach().clone().bool()
     
     def normalize(self):
         with torch.no_grad():
@@ -123,8 +124,13 @@ class WeightNormLinear(_WeightNormLayer):
         self.initialize()
 
     def forward(self, x):  
-        mask = GetSubnet.apply(self.score.abs(), args.sparsity)
-        weight = self.weight * mask / args.sparsity
+        if self.training:
+            mask = GetSubnet.apply(self.score.abs(), args.sparsity)
+            weight = self.weight * mask / args.sparsity
+            self.mask = mask.detach().clone().bool()
+        else:
+            weight = self.weight * self.mask / args.sparsity
+            
         out = F.linear(x, weight, self.bias)
         out = self.activation(out)
         return out
@@ -166,8 +172,13 @@ class WeightNormConv2D(_WeightNormConvNd):
         self.initialize()
 
     def forward(self, x): 
-        mask = GetSubnet.apply(self.score.abs(), args.sparsity)
-        weight = self.weight * mask
+        if self.training:
+            mask = GetSubnet.apply(self.score.abs(), args.sparsity)
+            weight = self.weight * mask / args.sparsity
+            self.mask = mask.detach().clone().bool()
+        else:
+            weight = self.weight * self.mask / args.sparsity
+
         out = F.conv2d(x, weight, self.bias, self.stride, self.padding, self.dilation, self.groups)
         if self.norm_layer:
             out = self.norm_layer(out)
