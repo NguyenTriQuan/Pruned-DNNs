@@ -53,7 +53,8 @@ class VGG(nn.Module):
         # bound = gain / math.sqrt(fan_in)
         # nn.init.normal_(self.layers[-1].weight, 0, bound)
         # nn.init.constant_(self.layers[-1].bias, 0)
-
+        
+        self.WN = [m for m in self.modules() if isinstance(m, _WeightNormLayer)]
         for i, m in enumerate(self.WN[:-1]):
             self.WN[i].next_ks = self.WN[i+1].ks
             print(self.WN[i].next_ks)
