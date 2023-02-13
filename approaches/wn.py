@@ -220,9 +220,9 @@ class Appr(object):
         for images, targets in data_loader:
             images=images.to(device)
             targets=targets.to(device)
-            # if train_transform:
-            #     images = train_transform(images)
-            images = (images - self.mean.view(1, -1, 1, 1)) / self.std
+            if train_transform:
+                images = train_transform(images)
+            # images = (images - self.mean.view(1, -1, 1, 1)) / self.std
                             
             self.train_batch(images, targets)
         s_H = 1
@@ -240,9 +240,9 @@ class Appr(object):
         for images, targets in data_loader:
             images=images.to(device)
             targets=targets.to(device)
-            images = (images - self.mean.view(1, -1, 1, 1)) / self.std
-            # if valid_transform:
-            #     images = valid_transform(images)
+            # images = (images - self.mean.view(1, -1, 1, 1)) / self.std
+            if valid_transform:
+                images = valid_transform(images)
                     
             loss, hits = self.eval_batch(images, targets)
             total_loss += loss

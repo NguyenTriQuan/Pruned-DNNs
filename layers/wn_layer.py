@@ -42,6 +42,26 @@ def _calculate_fan_in_and_fan_out(tensor):
 
     return fan_in, fan_out
 
+class GetSubnet(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, scores, k):
+        # Get the supermask by sorting the scores and using the top k%
+        out = scores.clone()
+        _, idx = scores.flatten().sort()
+        j = int((1 - k) * scores.numel())
+
+        # flat_out and out access the same memory.
+        flat_out = out.flatten()
+        flat_out[idx[:j]] = False
+        flat_out[idx[j:]] = True
+
+        return out
+
+    @staticmethod
+    def backward(ctx, g):
+        # send the gradient g straight-through on the backward pass.
+        return g, None
+
 class _WeightNormLayer(nn.Module):
 
     def __init__(self, in_features, out_features, bias=False, activation='leaky_relu', norm_type=None):
@@ -72,10 +92,11 @@ class _WeightNormLayer(nn.Module):
         self.next_ks = 1
 
     def initialize(self):  
-        fan_in, fan_out = _calculate_fan_in_and_fan_out(self.weight)
+        # fan_in, fan_out = _calculate_fan_in_and_fan_out(self.weight)
         fan = self.out_features * self.next_ks
         self.bound = self.gain / math.sqrt(fan)
         nn.init.normal_(self.weight, 0, self.bound)
+        nn.init.normal_(self.score, 0, self.bound)
         if self.bias is not None:
             nn.init.constant_(self.bias, 0)
     
@@ -95,13 +116,16 @@ class WeightNormLinear(_WeightNormLayer):
         super(WeightNormLinear, self).__init__(in_features, out_features, bias, activation, norm_type)
 
         self.weight = nn.Parameter(torch.Tensor(self.out_features, self.in_features).to(device))
+        self.score = nn.Parameter(torch.Tensor(self.out_features, self.in_features).to(device))
         self.norm_dim = (1)
         self.norm_view = (-1, 1)
         self.ks = 1
         self.initialize()
 
     def forward(self, x):  
-        out = F.linear(x, self.weight, self.bias)
+        mask = GetSubnet.apply(self.score.abs(), args.sparsity)
+        weight = self.weight * mask / args.sparsity
+        out = F.linear(x, weight, self.bias)
         out = self.activation(out)
         return out
             
@@ -135,13 +159,16 @@ class WeightNormConv2D(_WeightNormConvNd):
                                             stride, padding, dilation, False, _pair(0), groups, bias, activation, norm_type)
 
         self.weight = nn.Parameter(torch.Tensor(self.out_features, self.in_features // self.groups, *self.kernel_size).to(device))
+        self.score = nn.Parameter(torch.Tensor(self.out_features, self.in_features // self.groups, *self.kernel_size).to(device))
         self.norm_dim = (1, 2, 3)
         self.norm_view = (-1, 1, 1, 1)
         self.ks = np.prod(self.kernel_size)
         self.initialize()
 
     def forward(self, x): 
-        out = F.conv2d(x, self.weight, self.bias, self.stride, self.padding, self.dilation, self.groups)
+        mask = GetSubnet.apply(self.score.abs(), args.sparsity)
+        weight = self.weight * mask / args.sparsity
+        out = F.conv2d(x, weight, self.bias, self.stride, self.padding, self.dilation, self.groups)
         if self.norm_layer:
             out = self.norm_layer(out)
         out = self.activation(out)
